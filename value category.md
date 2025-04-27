@@ -97,7 +97,7 @@ The new term xvalue was originally introduced without any meaning. I prefer to t
 
 C++17 added more wrinkles to the taxonomy. Before C++17, we could have a prvalue which represented a latent object (for example, a function call of a function whose return statement calls a class constructor). However, if a prvalue is of a class type, it no longer represents an object but instead acts as a "free coupon" for that result object. Hence there is no expensive object copy when a prvalue result is returned by a function (since C++ is a pass-by-value language), we simply "xerox the coupon" for the actual resultant object. The specification demands that, at some point, the object is **materialized** (the coupon is exchanged) into the actual result object, and which point the specification also demands that the prvalue is converted into an xvalue.
 
-With this new feature, we can long bind prvalues to rvalue references. Instead, the prvalue is eventually materialized into an xvalue and that xvalue is bound to the reference.
+With this new feature, we can no longer bind prvalues to rvalue references. Instead, the prvalue is eventually materialized into an xvalue and that xvalue is bound to the reference.
 
 ## Summary
 
