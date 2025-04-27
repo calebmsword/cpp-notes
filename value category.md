@@ -48,7 +48,7 @@ It is a common misconception that lvalues and rvalues indicate the lifetime of d
 
 ## C++11
 
-This sections assumes you have some familiarity with C++ move semantics. If not, please open the following dropdown.
+The changes to value category taxonomy was a result of C++11's introduction of **move semantics**. While not necessary to know for the discussion here, it still might be helpful to have that context. Feel free to open the following dropdown to see a brief overview of move semantics. 
 
 <details>
 <summary>C++ move semantics</summary>
