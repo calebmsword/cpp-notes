@@ -2,47 +2,74 @@ Any expression in C++ can fall into one of a small number of categories called *
 
 To discuss the specifics of value categories with we will first present their historical evolution.
 
-### Before C++11
+## Before C++11
 
 Two defining characteristics of expressions are **value**, which is the actual value the expression computes, and an **address** which is the physical location in memory where the value is stored. (Expressions in C++ also have **types** but that is not signficant for this discussion.)  Despite what the name suggests, a "value category" tells us something about the __address__ of any given expression:
 
  - lvalues were expressions whose addresses are guaranteed to made available to the programmer. Hence, we will say that lvalues are **locatable**.
- - There is no guarantee the address of an rvalues will be made available to the programmer; Hence, we will say that rvalues are **latent**.
+ - There is no guarantee the address of an rvalues will be made available to the programmer. Hence, we will say that rvalues are **latent**.
 
 Some examples will elucidate:
 
- - int a = 3;
- - a; // this is an lvalue
- - the data stored in a is accessible to us with a named variable. in general, names of things represent locatable data in C++. This includes names of objects, functions, etc.
- - since the data is stored in a variable, the line of code after the expression "a" still has access to the location in memory which stores a's data. This is why & is defined for a, as it is safe to reveal this address to the programmer. That location in memory will have the data in a as long as a remains in scope.
+```c++
+int x = 3;
+x; // this is an lvalue
+```
+ - the data stored in `x` is accessible to us with a named variable. in general, names of things represent locatable data in C++. This includes names of objects, functions, etc. Since the data is stored in a variable, the line of code after the expression `x` still has access to the location in memory which stores `x`'s data. This is why `&` is defined for `x`, as it is safe to reveal this address to the programmer. That location in memory will have the data in `x` as long as `x` remains in scope.
 
- - 7; // this is an rvalue
- - a contrived example, but bear with me. When we write 7, the integer is whipped up and represented somewhere, but since it is not stored in a variable, it will not be made accessible to the programmer in future lines of code. While we can get the same *data* by writing `7` again in the next line of code, this data will be represented in a new address in memory. The compiler is allowed to trash the value at some indeterminate machine instruction sometime after this line of code, hence it is unsafe to reveal this address to the programmer. the address is made latent.
+```c++
+int a;
+int b;
 
- - int a = 3; // '3' here is an rvalue.
- - integer literals are, in general, rvalues. While rvalues are latent, their address can be saved IF they stored into a variable. In this case, the location in memory for `3` will stored in the variable a, and the lifetime of the data for the literal is extended such that it shares the lifetime of the variable a. This is why we use the term "latent", as it is strictly possible for the address in memory for the rvalue to be saved elsewhere through assignment. This address is made available indirectly through the variable.
+// do stuff; assume a and b get assigned something 
 
-Note: It is a common misconception that lvalues and rvalues indicate the lifetime of data; one might think that lvalues are expressions whose data has persistent lifetime, and rvalues are expressions whose data has temporary lifetime. Obviously from the third example above, it is wrong to assume that rvalues represent data that will "vanish" by the next line of code. The term "temporary" needs to stop being used by the C++ community when they discuss rvalues as it often leads to this misconception. In general, do not associate value category with lifetime.
+if (a + b == 3) {   // <-- "a + b" is an rvalue
+  // do stuff
+};
+```
+ - When we write `a + b`, the result of that computation  is whipped up and represented somewhere, but since it is not stored in a variable, it will not be made accessible to the programmer in future lines of code. The compiler is allowed to trash the value at some indeterminate machine instruction sometime after this line of code. While we can get the same *value* by writing `a + b` again in the next line of code, this data will be represented in a new address in memory. Therefore, it is unsafe to reveal this address to the programmer, and for the programmer's safety, the address is made latent.
 
-In C++11, the standards committee generalized the concept of "locatibility" into what they called "identity" and wanted to categorize expressions whose evaluation corresponds to an object's identity. An object has "identity" if the evaluation of the expressions offers some mechanism to the programmer to determine an object's uniqueness. Obviously, all "locatable" expressions (lvalues) have identity since the & operator can be used with them to find an object's identity, but an expression could also carry identity if its __data__ was guaranteed to identify an object. This means it is strictly possible for an expression to be latent (an rvalue) and still have identity. Such an expression manifested in the language with the rvalue reference cast introduced in C++11. Casting an object into an rvalue reference results in latent data (if I don't store it in a variable the result of the cast won't be accessible in subsequent lines of code) but since it is a reference it is an alias to an object and guarantees us the identity of that object. The C++ standards committee felt this expression was best represented by a third value category, and the pre-existing value category taxonomy was salvaged by changing the meaning of the word "rvalue":
- - nearly all of what we used to call rvalues are now called "prvalues" ("pure rvalues"),
+```c++
+ - int& number_reference = 3; // '3' here is an rvalue.
+```
+ - Integer literals are, in general, rvalues. While rvalues are latent, their address can be saved __if__ they stored into a reference. In this case, the location in memory for `3` will be referenced by `number_reference` and the lifetime of the value for the literal is extended such that it shares the lifetime of the reference. This is why we use the term "latent" and not "temporary", as it is strictly possible for the address in memory for the rvalue to be exposed to the programmer through assignment. When we find the address of `number_reference` we find the address of the value that was represented by the expression `3`. That is, `3`'s address is made available indirectly through the reference.
+
+<details open>
+<summary>Note</summary>
+<br>
+Some people call rvalues "temporary values", and unfortunately this sort of terminology has even permeated the C++ standard. But it is clear from the last example that rvalues are not guaranteed to "immediately vanish" by the next line of code. The terminology "temporary" is objectively incorrect so I am avoiding it entirely in this discussion.
+</details>
+
+<details open>
+<summary>Note</summary>
+<br>
+It is a common misconception that lvalues and rvalues indicate the lifetime of data; one might think that lvalues are expressions whose data has persistent lifetime, and rvalues are expressions whose data has temporary lifetime. The third example shows why rvalues are not, in general, temporary. I regret to inform that some abuses of the language specification make it possible to create lvalues that refer to data that is no longer in scope. The lesson is clear: in general, do not associate value category with lifetime.
+</details>
+
+## C++11
+
+In C++11, the standards committee generalized the concept of "locatibility" into what they called "identity" and wanted to categorize expressions whose evaluation corresponds to an object's identity. An object has "identity" if the evaluation of the expression offers some mechanism to the programmer to determine an object's uniqueness. Obviously, all "locatable" expressions (lvalues) have identity since the & operator can be used with them to find an object's identity, but an expression could also carry identity if its __value__ was guaranteed to identify an object. Such a thing could happen in an rvalue expression which also somehow computes a reference since the C++ specification requires that a reference actually points to something (unlike a pointer, which can point to `nullptr`). Such an expression manifested in the language with the *rvalue reference cast* introduced in C++11. Casting an object into an rvalue reference of object type results in latent data (if I don't store it in a variable the result of the cast won't be accessible in subsequent lines of code) but since it is a reference it is an alias to an object and guarantees us the identity of that object. The C++ standards committee felt this expression was best represented by a third value category, and the pre-existing value category taxonomy was salvaged by changing the meaning of the word "rvalue":
+ - nearly all of what we used to call rvalues are now called **prvalues** ("pure rvalues"),
  - what we used to call lvalues are still called lvalues,
- - an rvalue reference cast expression of an object type is of a new value category called "xvalue"
-   - a function which returns an revalue reference to an object type is also considered an xvalue.
- - rvalue is now an umbrella term: xvalues and prvalues are specific types of rvalues.
+ - an __rvalue reference cast expression of an object type__ is of a new value category called **xvalue**,
+   - __a function which returns an rvalue reference to an object type__ is also considered an xvalue,
+ - and rvalue is now an umbrella term: __xvalues and prvalues are specific types of rvalues__.
 
 There also exists the less useful umbrella term glvalue, short for "general lvalue", which refers to either xvalues or lvalues (yes, this means an xvalue is both a glvalue and an rvalue). Hence glvalues are all expressions which carry identity. As a result of this change, everything that was an lvalue before was still an lvalue and everything that used to be an rvalue was still an rvalue, but now there two specific and mutually-exclusive types of rvalues.
 
 With this new change, a new constructor overload called a "move constructor" could be created for an object which takes an rvalue reference to object whose type is that of the class for that constructor. A move constructor is called if an rvalue or xvalue of the correct object type is given to the constructor, and unlike const lvalue references, rvalue references are mutable, meaning the move constructor can modify the object given to it in order to perform its task. (It is expected that the user implements a move constructor such that the new constructed object "moves" the resource(s) from the given object so that ownership of the memory/mutex/file/etc associated with the given object is exchanged with that of the newly constructed object. While this is a mere convention, it would be considered a mortal sin if your move constructor did anything other than this.) As such, rvalues are now considered "movable". lvalues have identity and are not movable, prvalues have no identity and are movable, and xvalues have identity and are movable.
 
-The new term xvalue was originally introduced without any meaning. I prefer to think of xvalue as being short for "cross value" since an xvalue contains a cross of some characteristics from lvalues and some characteristics from pre-C++11 rvalues. There is a small class of expressions that were rvalues before C++11 that are now also xvalues, but the rvalue cast expression and the function which returns an rvalue reference are by far the most important and common examples encountered in practice so it will what we will emphasize in the current discussion.
+The new term xvalue was originally introduced without any meaning. I prefer to think of xvalue as being short for "cross value" since an xvalue contains a cross of some characteristics from lvalues and some characteristics from pre-C++11 rvalues. There is a small class of expressions that were rvalues before C++11 that are now also xvalues, but the rvalue cast expression and the function which returns an rvalue reference are by far the most important and common examples encountered in practice so it will be what we will emphasize in the current discussion.
+
+## C++17
 
 C++17 added more wrinkles to the taxonomy. Before C++17, we could have a prvalue which represented a latent object (for example, a function call of a function whose return statement calls a class constructor). However, if a prvalue is of a class type, it no longer represents an object but instead acts as a "free coupon" for that result object. Hence there is no expensive object copy when a prvalue result is returned by a function (since C++ is a pass-by-value language), we simply "xerox the coupon" for the actual resultant object. The specification demands that, at some point, the object is materialized (the coupon is exchanged) into the actual result object, and which point the specification also demands that the prvalue is converted into an xvalue.
 
 With this new feature, prvalues of nonprimitive types are no longer moved from. When we pass a prvalue to a class constructor, the prvalue is eventually materialized into an xvalue, and that xvalue is moved from. Hence in C++17 onwards, it is no longer true that prvalues are movable.
 
+## Summary
+
 In short:
- - if an expression can be given to the & operator it is an lvalue, otherwise it is an rvalue
  - the distinguishing factor between lvalues and rvalues is whether or not the address of the value of the expression is guaranteed to be available to the programmer
  - lvalues are locatable--their address is guaranteed to be made available to the programmer
  - rvalues are latent--their address is only made available through assignment which allows indirect access to the address
@@ -54,14 +81,26 @@ In short:
    - xvalues and prvalues are specific types of rvalues.
  - prvalues of class types were movable until C++17, in which only xvalues are allowed to represent movable objects of class types.
 
-I will mention that the standard says that xvalues are "eXpiring values", terminology I strongly dislike. Since most practical usage of xvalues is to call a move constructor or move assignement, the value represented by the xvalue is meant to be "moved from" and eventually discarded, which I suppose what this terminology is supposed to mean. This hinges on the programmer adhering to convention, however. The object pointed to by an xvalue won't necessarily be discarded after the xvalue is moved from, so it is bad to use terminology which suggests the lifetime of the data represented by the xvalue. This also assumes that a move constructor that particular type actually exists and is implemented in the expected way. We are better off defining things for what they actually are instead of what we hope they should be.
+### An aside on the xvalue terminology
 
-What follows is a precise categorization of all expressions told in a format extremely similar to cppreference's page about value categories.
+I will mention that the standard says that xvalues are "eXpiring values", terminology I strongly dislike. Since most practical usage of xvalues is to call a move constructor or move assignement, the value represented by the xvalue is meant to be "moved from" and eventually discarded, which I suppose what this terminology is supposed to mean. This hinges on the programmer adhering to convention, however:
+
+ - The class type might not have a move constructor or move assignment overload. Then the xvalue won't be moved from at all.
+ - The move constructor or move assignment overload could be implemented in a faulty or nefarious way which does not perform the expected behavior.
+ - The user could have an lvalue pointing to some object, cast it as an xvalue and move it to some other variable, and then access the original lvalue and manipulate the object that was moved from. Such a thing would be considered horrendous style but it is entirely possible. In this example the data referenced by the xvalue is not immediately trashed after use, and it is bad to use terminlogy which suggests the opposite.
+   
+An xvalue refers to data that is flagged as movable. Not all xvalues are guaranteed to be temporary. We are better off defining things for what they actually are instead of how we expect them to be used.
+
+### Value categories in ugly detail
+
+What follows is a precise categorization of all expressions told in a format extremely similar to cppreference's page about value categories. Please keep in mind that operator overloading can completely override anything describe here, in which case the implementation of the override (specifically its return value) will determine the value category of the overloaded operation. 
 
 lvalue
  - names of variables (or functions, templates, data members)
  - all assignment expressions (=, +=, *=, etc)
+  - The variable that is assigned to is the result of the expression, hence the result of the expression is locatable. 
  - an expression using the "dereference" operator (*)
+  - Data acquired from an explicit address in memory is obviously locatable. 
  - string literals
    - the specification demands that object referenced by a string persists through the lifetime of the program (the terminology they use is "static storage"), so it is safe to make strings locatable. Many implementations will create only one object if you declare two string literals with the exact same content.
  Key properties:
