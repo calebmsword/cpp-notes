@@ -32,21 +32,40 @@ if (a + b == 3) {   // <-- "a + b" is an rvalue
 ```c++
  - int& number_reference = 3; // '3' here is an rvalue.
 ```
- - Integer literals are, in general, rvalues. While rvalues are latent, their address can be saved __if__ they stored into a reference. In this case, the location in memory for `3` will be referenced by `number_reference` and the lifetime of the value for the literal is extended such that it shares the lifetime of the reference. This is why we use the term "latent" and not "temporary", as it is strictly possible for the address in memory for the rvalue to be exposed to the programmer through assignment. When we find the address of `number_reference` we find the address of the value that was represented by the expression `3`. That is, `3`'s address is made available indirectly through the reference.
+ - Integer literals are, in general, rvalues. While rvalues are latent, their address can be saved __if__ they stored into a reference. In this case, the location in memory for `3` will be referenced by `number_reference` and the lifetime of the value for the literal is extended such that it shares the lifetime of the reference. When we find the address of `number_reference` we find the address of the value that was represented by the expression `3`. That is, `3`'s address is made available indirectly through the reference.
 
-<details open>
+<details>
 <summary>Note</summary>
 <br>
 Some people call rvalues "temporary values", and unfortunately this sort of terminology has even permeated the C++ standard. But it is clear from the last example that rvalues are not guaranteed to "immediately vanish" by the next line of code. The terminology "temporary" is objectively incorrect so I am avoiding it entirely in this discussion.
 </details>
 
-<details open>
+<details>
 <summary>Note</summary>
 <br>
 It is a common misconception that lvalues and rvalues indicate the lifetime of data; one might think that lvalues are expressions whose data has persistent lifetime, and rvalues are expressions whose data has temporary lifetime. The third example shows why rvalues are not, in general, temporary. I regret to inform that some abuses of the language specification make it possible to create lvalues that refer to data that is no longer in scope. The lesson is clear: in general, do not associate value category with lifetime.
 </details>
 
 ## C++11
+
+This sections assumes you have some familiarity with C++ move semantics. If not, please open the following dropdown.
+
+<details>
+<summary>C++ move semantics</summary>
+
+We use the term **resource** to describe something that must be freed in an exception-safe way. Resources are things that in any other language you would manage with a try-catch-finally block (things like allocated memory, an open file, a lock, a connection to a socket, etc). Since C++ does not have a finally block, the "proper" way to safely manage resources is to create classes whose instantiated objects manage a single resource. The constructor acquires the resource and the destructor frees the resource. Since a destructor is called whenever an object goes out of scope, a destructor is guaranteed to be called even if an exception occurs. This design pattern is so important that is has a name: RAII (Resource Acquisition Is Initialization).
+
+It can be useful to exchange ownership of a resource from one object to another. This concept is called a **move**. If object B represents acquired memory allocation and wants to exchange ownership of this allocated memory to object A, the allocated memory is represented as a field whose value is a pointer to that memory. The move will assign this pointer to the appropriate field A and make sure B now has a `nullptr` in this field, indicating that it no longer owns a resource.
+
+This concept is useful enough that the C++ standards committee wanted to add language semantics which allow for a stylistic standard for creating moves. They chose to implement this by adding a new type of reference. Constructors and assignment overloads could be written by the programmer which accept this new type of reference, by which it is understood by the programmer that references of this type given to a constructor or assignment are intended to be moved from. We can think of this new reference as a flag which indicates that the object it points to is intended to be moved from. This new reference is referred to as an `rvalue reference`, and the pre-C++`` reference was renamed to an `lvalue reference`. The reason the new reference was called an rvalue reference because if you have an overloaded function which takes an rvalue or lvalue reference, passing an rvalue to that function causes the rvalue reference signature to be called instead of the lvalue. This allows you to create a function which has different behavior depending on whether the argument provided is an rvalue or lvalue. The rvalue reference is also a mutable reference if declared non-const. Before C++11, rvalues could only be bound to `const` lvalue references meaning there was no way to mutate a reference bound to an rvalue.
+
+The name "rvalue reference" is very poor because it suggests you can only bind rvalues to rvalue references. But you can bind an lvalue to an rvalue reference. This is a common point of confusion for new C++ developers.
+
+The C++ standards committee added a function `std::move` to the library which takes a single argument and returns an rvalue reference to the object given to the function. This function should have been called `std::as_movable` since no move occurs in the execution of `std::move`, a common point of confusion among new C++ developers. Oh well.
+
+We should interpret the return value of `std::move` as a flag to an object which indicates that the object can be moved from. If the user provides the result of `std::move` to a constructor or assignment which is overloaded to accept an rvalue reference, we cause a move if these overloads exist and are implemented correctly. A constructor of a class `T` which accepts a `T` rvalue reference parameter is called a **move constructor**. An assignment operator overload of class `T` which accepts a `T` rvalue reference parameter is called a **move assignment overload**.
+
+</details>
 
 In C++11, the standards committee generalized the concept of "locatibility" into what they called "identity" and wanted to categorize expressions whose evaluation corresponds to an object's identity. An object has "identity" if the evaluation of the expression offers some mechanism to the programmer to determine an object's uniqueness. Obviously, all "locatable" expressions (lvalues) have identity since the & operator can be used with them to find an object's identity, but an expression could also carry identity if its __value__ was guaranteed to identify an object. Such a thing could happen in an rvalue expression which also somehow computes a reference since the C++ specification requires that a reference actually points to something (unlike a pointer, which can point to `nullptr`). Such an expression manifested in the language with the *rvalue reference cast* introduced in C++11. Casting an object into an rvalue reference of object type results in latent data (if I don't store it in a variable the result of the cast won't be accessible in subsequent lines of code) but since it is a reference it is an alias to an object and guarantees us the identity of that object. The C++ standards committee felt this expression was best represented by a third value category, and the pre-existing value category taxonomy was salvaged by changing the meaning of the word "rvalue":
  - nearly all of what we used to call rvalues are now called **prvalues** ("pure rvalues"),
