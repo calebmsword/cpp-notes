@@ -43,7 +43,7 @@ Some people call rvalues "temporary values", and unfortunately this sort of term
 <details>
 <summary>Note</summary>
 <br>
-It is a common misconception that lvalues and rvalues indicate the lifetime of data; one might think that lvalues are expressions whose data has persistent lifetime, and rvalues are expressions whose data has temporary lifetime. The third example shows why rvalues are not, in general, temporary. I regret to inform that some abuses of the language specification make it possible to create lvalues that refer to data that is no longer in scope. The lesson is clear: in general, do not associate value category with lifetime.
+It is a common misconception that lvalues and rvalues indicate the lifetime of data; one might think that lvalues are expressions whose data has persistent lifetime and rvalues are expressions whose data has temporary lifetime. The third example shows why rvalues are not, in general, temporary. I regret to inform that some abuses of the language specification make it possible to create lvalues that refer to data that is no longer in scope. The lesson is clear: in general, do not associate value category with lifetime.
 </details>
 
 ## C++11
@@ -53,52 +53,64 @@ This sections assumes you have some familiarity with C++ move semantics. If not,
 <details>
 <summary>C++ move semantics</summary>
 
+<br>
+
 We use the term **resource** to describe something that must be freed in an exception-safe way. Resources are things that in any other language you would manage with a try-catch-finally block (things like allocated memory, an open file, a lock, a connection to a socket, etc). Since C++ does not have a finally block, the "proper" way to safely manage resources is to create classes whose instantiated objects manage a single resource. The constructor acquires the resource and the destructor frees the resource. Since a destructor is called whenever an object goes out of scope, a destructor is guaranteed to be called even if an exception occurs. This design pattern is so important that is has a name: RAII (Resource Acquisition Is Initialization).
 
 It can be useful to exchange ownership of a resource from one object to another. This concept is called a **move**. If object B represents acquired memory allocation and wants to exchange ownership of this allocated memory to object A, the allocated memory is represented as a field whose value is a pointer to that memory. The move will assign this pointer to the appropriate field A and make sure B now has a `nullptr` in this field, indicating that it no longer owns a resource.
 
-This concept is useful enough that the C++ standards committee wanted to add language semantics which allow for a stylistic standard for creating moves. They chose to implement this by adding a new type of reference. Constructors and assignment overloads could be written by the programmer which accept this new type of reference, by which it is understood by the programmer that references of this type given to a constructor or assignment are intended to be moved from. We can think of this new reference as a flag which indicates that the object it points to is intended to be moved from. This new reference is referred to as an `rvalue reference`, and the pre-C++`` reference was renamed to an `lvalue reference`. The reason the new reference was called an rvalue reference because if you have an overloaded function which takes an rvalue or lvalue reference, passing an rvalue to that function causes the rvalue reference signature to be called instead of the lvalue. This allows you to create a function which has different behavior depending on whether the argument provided is an rvalue or lvalue. The rvalue reference is also a mutable reference if declared non-const. Before C++11, rvalues could only be bound to `const` lvalue references meaning there was no way to mutate a reference bound to an rvalue.
+This concept is useful enough that the C++ standards committee wanted to add language semantics which allow for a stylistic standard for creating moves. They chose to implement this by adding a new type of reference. Constructors and assignment overloads could be written by the programmer which accept this new type of reference, by which it is understood by the programmer that references of this type given to a constructor or assignment are intended to be moved from. We can think of this new reference as a flag which indicates that the object it points to is intended to be moved from. This new reference is referred to as an `rvalue reference`, and the pre-C++11 reference was renamed to an `lvalue reference`. The reason the new reference was called an rvalue reference because if you have an overloaded function which takes an rvalue or lvalue reference, passing an rvalue to that function causes the rvalue reference signature to be called instead of the lvalue. This allows you to create a function which has different behavior depending on whether the argument provided is an rvalue or lvalue. The rvalue reference is also a mutable reference if declared non-const. Before C++11, rvalues could only be bound to `const` lvalue references meaning there was no way to mutate a reference bound to an rvalue.
 
-The name "rvalue reference" is very poor because it suggests you can only bind rvalues to rvalue references. But you can bind an lvalue to an rvalue reference. This is a common point of confusion for new C++ developers.
+The name "rvalue reference" is very poor because it suggests you can only bind rvalues to rvalue references. But you can bind an lvalue to an rvalue reference. This is a common point of confusion for new C++ developers. It should been called something like an "rvalue-preferring reference" and the reference should have been renamed to something like "lvalue-preferring reference".
 
-The C++ standards committee added a function `std::move` to the library which takes a single argument and returns an rvalue reference to the object given to the function. This function should have been called `std::as_movable` since no move occurs in the execution of `std::move`, a common point of confusion among new C++ developers. Oh well.
+The C++ standards committee added a function `std::move` to the library which takes a single argument and returns an rvalue reference to the object given to the function. (This function should have been called `std::as_movable` since no move occurs in the execution of `std::move`, a common point of confusion among new C++ developers.) We should interpret the return value of `std::move` as a reference which acts as a flag that the object can be moved from. If the user provides the result of `std::move` to a constructor or assignment which is overloaded to accept an rvalue reference, we cause a move if these overloads exist and are implemented in the expected manner. A constructor of a class `T` which accepts a `T` rvalue reference parameter is called a **move constructor**. An assignment operator overload of class `T` which accepts a `T` rvalue reference parameter is called a **move assignment overload**.
 
-We should interpret the return value of `std::move` as a flag to an object which indicates that the object can be moved from. If the user provides the result of `std::move` to a constructor or assignment which is overloaded to accept an rvalue reference, we cause a move if these overloads exist and are implemented correctly. A constructor of a class `T` which accepts a `T` rvalue reference parameter is called a **move constructor**. An assignment operator overload of class `T` which accepts a `T` rvalue reference parameter is called a **move assignment overload**.
+The C++ standard uses the term **movable** to describe objects which induce an rvalue reference function signature to be executed during overload resolution. This means "movable" and "rvalue" are synonymous.
+
+<br>
+<br>
 
 </details>
 
-In C++11, the standards committee generalized the concept of "locatibility" into what they called "identity" and wanted to categorize expressions whose evaluation corresponds to an object's identity. An object has "identity" if the evaluation of the expression offers some mechanism to the programmer to determine an object's uniqueness. Obviously, all "locatable" expressions (lvalues) have identity since the & operator can be used with them to find an object's identity, but an expression could also carry identity if its __value__ was guaranteed to identify an object. Such a thing could happen in an rvalue expression which also somehow computes a reference since the C++ specification requires that a reference actually points to something (unlike a pointer, which can point to `nullptr`). Such an expression manifested in the language with the *rvalue reference cast* introduced in C++11. Casting an object into an rvalue reference of object type results in latent data (if I don't store it in a variable the result of the cast won't be accessible in subsequent lines of code) but since it is a reference it is an alias to an object and guarantees us the identity of that object. The C++ standards committee felt this expression was best represented by a third value category, and the pre-existing value category taxonomy was salvaged by changing the meaning of the word "rvalue":
+In C++11, the standards committee generalized the concept of "locatibility" into what they called "identity" and wanted to categorize expressions whose evaluation corresponds to an object's identity. A reference represents identity since it is an alias to the object itself. We also consider "locatable" expressions (lvalues) as those with identity since the & operator can be used with them to find an object's specific location in memory (the identity of an object is determined by its unique memory location). Clearly identity is a characteristic of lvalues, but if we were somehow able to create a latent reference we would have an rvalue with identity. Such an expression manifested in the language with the *rvalue reference cast* introduced in C++11. Casting an object into an rvalue reference of object type results in latent data (the language specification does not allow this expression to be provided to `&`) but since it is a reference its value *is* the identity of that object. The C++ standards committee felt this expression was best represented by a third value category and the pre-existing value category taxonomy was salvaged by changing the meaning of the word "rvalue":
  - nearly all of what we used to call rvalues are now called **prvalues** ("pure rvalues"),
  - what we used to call lvalues are still called lvalues,
- - an __rvalue reference cast expression of an object type__ is of a new value category called **xvalue**,
-   - __a function which returns an rvalue reference to an object type__ is also considered an xvalue,
+ - an __rvalue reference cast expression of an object__ is of a new value category called **xvalue**,
+   - __a function which returns an rvalue reference of an object__ is also considered an xvalue,
  - and rvalue is now an umbrella term: __xvalues and prvalues are specific types of rvalues__.
 
-There also exists the less useful umbrella term glvalue, short for "general lvalue", which refers to either xvalues or lvalues (yes, this means an xvalue is both a glvalue and an rvalue). Hence glvalues are all expressions which carry identity. As a result of this change, everything that was an lvalue before was still an lvalue and everything that used to be an rvalue was still an rvalue, but now there two specific and mutually-exclusive types of rvalues.
+As a result of this change, everything that was an lvalue before was still an lvalue and everything that used to be an rvalue was still an rvalue, but now there two specific and mutually-exclusive types of rvalues. The xvalue is a latent object with identity. prvalues are latent objects without identity.
 
-With this new change, a new constructor overload called a "move constructor" could be created for an object which takes an rvalue reference to object whose type is that of the class for that constructor. A move constructor is called if an rvalue or xvalue of the correct object type is given to the constructor, and unlike const lvalue references, rvalue references are mutable, meaning the move constructor can modify the object given to it in order to perform its task. (It is expected that the user implements a move constructor such that the new constructed object "moves" the resource(s) from the given object so that ownership of the memory/mutex/file/etc associated with the given object is exchanged with that of the newly constructed object. While this is a mere convention, it would be considered a mortal sin if your move constructor did anything other than this.) As such, rvalues are now considered "movable". lvalues have identity and are not movable, prvalues have no identity and are movable, and xvalues have identity and are movable.
+<details>
+<summary>Note</summary>
+<br>
+There also exists the less useful umbrella term **glvalue**, short for "general lvalue". xvalues and lvalues are specific types of glvalues.
+ 
+An xvalue is both a glvalue and an rvalue.
+<br>
+<br>
+</details>
 
-The new term xvalue was originally introduced without any meaning. I prefer to think of xvalue as being short for "cross value" since an xvalue contains a cross of some characteristics from lvalues and some characteristics from pre-C++11 rvalues. There is a small class of expressions that were rvalues before C++11 that are now also xvalues, but the rvalue cast expression and the function which returns an rvalue reference are by far the most important and common examples encountered in practice so it will be what we will emphasize in the current discussion.
+The new term xvalue was originally introduced without any meaning. I prefer to think of xvalue as being short for "cross value" since an xvalue contains a cross of a characteristic usually associated with lvalues (identity) and the characteristic of pre-C++11 rvalues (latency). There is a small class of expressions that were rvalues before C++11 that are now also xvalues, but the rvalue cast expression and the function which returns an rvalue reference are by far the most important and common examples encountered in practice so it will be what we will emphasize in the current discussion.
 
 ## C++17
 
-C++17 added more wrinkles to the taxonomy. Before C++17, we could have a prvalue which represented a latent object (for example, a function call of a function whose return statement calls a class constructor). However, if a prvalue is of a class type, it no longer represents an object but instead acts as a "free coupon" for that result object. Hence there is no expensive object copy when a prvalue result is returned by a function (since C++ is a pass-by-value language), we simply "xerox the coupon" for the actual resultant object. The specification demands that, at some point, the object is materialized (the coupon is exchanged) into the actual result object, and which point the specification also demands that the prvalue is converted into an xvalue.
+C++17 added more wrinkles to the taxonomy. Before C++17, we could have a prvalue which represented a latent object (for example, a function call of a function whose return statement calls a class constructor). However, if a prvalue is of a class type, it no longer represents an object but instead acts as a "free coupon" for that result object. Hence there is no expensive object copy when a prvalue result is returned by a function (since C++ is a pass-by-value language), we simply "xerox the coupon" for the actual resultant object. The specification demands that, at some point, the object is **materialized** (the coupon is exchanged) into the actual result object, and which point the specification also demands that the prvalue is converted into an xvalue.
 
-With this new feature, prvalues of nonprimitive types are no longer moved from. When we pass a prvalue to a class constructor, the prvalue is eventually materialized into an xvalue, and that xvalue is moved from. Hence in C++17 onwards, it is no longer true that prvalues are movable.
+With this new feature, we can long bind prvalues to rvalue references. Instead, the prvalue is eventually materialized into an xvalue and that xvalue is bound to the reference.
 
 ## Summary
 
 In short:
  - the distinguishing factor between lvalues and rvalues is whether or not the address of the value of the expression is guaranteed to be available to the programmer
- - lvalues are locatable--their address is guaranteed to be made available to the programmer
- - rvalues are latent--their address is only made available through assignment which allows indirect access to the address
+ - lvalues are **locatable**--their address is guaranteed to be made available to the programmer
+ - rvalues are **latent**--their address is only made available through assignment which allows indirect access to the address
  - changes to the C++11 and C++17 do not change these facts, and only serve to introduce two specific types of rvalues (prvalues and xvalues)
  - after C++11 and before C++17,
-   - lvalues have identity and cannot be moved
-   - xvalues have identity and are movable
-   - prvalues do not have identity and are movable
+   - xvalues are latent objects with identity,
+   - prvalues are latent object without identity, and
    - xvalues and prvalues are specific types of rvalues.
- - prvalues of class types were movable until C++17, in which only xvalues are allowed to represent movable objects of class types.
+ - after C++17, xvalues also represent materializations of prvalue objects.
 
 ### An aside on the xvalue terminology
 
@@ -108,11 +120,11 @@ I will mention that the standard says that xvalues are "eXpiring values", termin
  - The move constructor or move assignment overload could be implemented in a faulty or nefarious way which does not perform the expected behavior.
  - The user could have an lvalue pointing to some object, cast it as an xvalue and move it to some other variable, and then access the original lvalue and manipulate the object that was moved from. Such a thing would be considered horrendous style but it is entirely possible. In this example the data referenced by the xvalue is not immediately trashed after use, and it is bad to use terminlogy which suggests the opposite.
    
-An xvalue refers to data that is flagged as movable. Not all xvalues are guaranteed to be temporary. We are better off defining things for what they actually are instead of how we expect them to be used.
+An xvalue is either 1) a latent object with identity or 2) a materialization of a prvalue. Not all xvalues are guaranteed to be temporary. We are better off defining things for what they actually are instead of how we expect them to be used.
 
 ### Value categories in ugly detail
 
-What follows is a precise categorization of all expressions told in a format extremely similar to cppreference's page about value categories. This is not meant to be read front-to-back; I would recommend using it as a reference. Please keep in mind that operator overloading can completely override anything describe here, in which case the implementation of the override (specifically its return value) will determine the value category of the overloaded operation. 
+What follows is a precise categorization of all expressions told in a format extremely similar to cppreference's page about value categories. This is not meant to be read front-to-back; I would recommend using it as a reference. Please keep in mind that operator overloading can completely override anything describe here, in which case the implementation of the override (specifically its return value, see the discussion below on the value categories of function calls) will determine the value category of the overloaded operation. 
 
 Common lvalues:
  - names of variables (or functions, templates, data members)
@@ -142,8 +154,8 @@ Common prvalues:
     - function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
 
 Common xvalues:
- - a cast expression to rvalue reference to object type (static_cast<MyClass&&>(myClassInstance))
- - or a function that returns an rvalue reference to object type (std::move(myClassInstance))
+ - a cast expression to rvalue reference to object type (`static_cast<MyClass&&>(myClassInstance)`)
+ - or a function that returns an rvalue reference to object type (`std::move(myClassInstance)`)
  - _Key properties:_
    - `&` throws
    - cannot be used in left operand of any assignment
@@ -204,6 +216,7 @@ post-increment, post-decrement (a++, a--)
     foo().b  // xvalue
   }
   ```
+
    - Classes are a generalization of C structs, and one non-enumerator data member of a struct can be accessed from another using pointer arithmetic (yes, this means there are situations where you can access private fields of an objects. Very unfortunate language design.) Hence data member access should be treated in the same manner as array access. See my disucssion about the subscript operator for more information.
 
 
@@ -242,7 +255,7 @@ function member access of object (`a.f`, `p->f`, `a.*pf`, `p->*pf`)
 
 this
  - prvalue
- - `this` is a pointer. See my discussion about `&`; the same argument can be used to argue we do not consider pointers to have identity. 
+ - This is perplexing to me, I do not understand this choice from the language specification. I will update these notes if I ever find a satisfying justification for this decision.
 
 template parameters
  - non-type template parameter of lvalue reference type
@@ -259,7 +272,7 @@ specialization of a concept
 cast expressions
  - xvalue if casted to rvalue reference of object type (by definition)
  - lvalue if casted to lvalue reference type
-   - (I really don't know why lvalue reference casts are not xvalues, for all the same reasoning that rvalue reference casts of objects are xvalues. However, the C++98 standard decided these were lvalues, and no changes to the taxonomy from C++11 was going to change something that once was an lvalue into an rvalue, so this is easy to explain from C++'s insistance on backwards-compatibility. Furthermore, move semantics would become even more confusing than they already are if both lvalue reference casts and rvalue reference casts could be moved from.)
+   - (It feels arbitrary that an lvalue reference cast is locatable while an rvalue reference cast is latent. However, if we had an overloaded function with a lvalue reference parameter and an rvalue reference parameter, it would be immensely confusing if an lvalue reference cast caused an rvalue reference overload to be called.)
  - prvalue otherwise
 
 void expressions
