@@ -104,7 +104,7 @@ With this new feature, we can long bind prvalues to rvalue references. Instead, 
 In short:
  - the distinguishing factor between lvalues and rvalues is whether or not the address of the value of the expression is guaranteed to be available to the programmer
  - lvalues are **locatable**--their address is guaranteed to be made available to the programmer
- - rvalues are **latent**--their address is only made available through assignment which allows indirect access to the address
+ - rvalues are **latent**--their address is only made available through assignment to a reference, in allows indirect access to the address through the reference is permitted
  - changes to the C++11 and C++17 do not change these facts, and only serve to introduce two specific types of rvalues (prvalues and xvalues)
  - after C++11 and before C++17,
    - xvalues are latent objects with identity,
