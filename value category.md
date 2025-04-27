@@ -278,55 +278,53 @@ cast expressions
 void expressions
  - void functions, casting something as void, and throw expressions are all prvalues, but these expressions are not allowed to be used as function arguments or used to initialize references. throw expressions may be used in either branch of the ternary operator. (you could argue this implies the existence of an additional value category if you wanted to make C++ developers lives even harder).
 
-
-
 ### Properties of value categories: 
 
 lvalue
- > & is defined
- > can be used as left operand of assignment operators (if value is modifiable)
- > can be used to initialize a non-rvalue reference
- > can be converted to prvalue with implicit conversion
-   > lvalue-to-rvalue
-   > array-to-pointer
-   > function-to-pointer
- > can be polymorphic
- > can have incomplete type
+ - & is defined
+ - can be used as left operand of assignment operators (if value is modifiable)
+ - can be used to initialize a non-rvalue reference
+ - can be converted to prvalue with implicit conversion
+   - lvalue-to-rvalue
+   - array-to-pointer
+   - function-to-pointer
+ - can be polymorphic
+ - can have incomplete type
 
 prvalue
-  > & throws
-  > cannot be used in left operand of any assignment
-  > can be used to initialize const lvalue reference
-  > can be used to initialize rvalue reference
-  > function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
-  > cannot be polymorphic
-  > cannot have incomplete type (except void, or when used in decltype specifier)
-  > cannot have abstract class type or an array of abstract class type
+  - & throws
+  - cannot be used in left operand of any assignment
+  - can be used to initialize const lvalue reference
+  - can be used to initialize rvalue reference
+  - function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
+  - cannot be polymorphic
+  - cannot have incomplete type (except void, or when used in decltype specifier)
+  - cannot have abstract class type or an array of abstract class type
 
 xvalue
-  > & throws
-  > cannot be used in left operand of any assignment
-  > can be used to initialize const non-rvalue reference
-  > can be used to initialize rvalue reference
-  > function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
-  > can be converted to prvalue with implicit conversion
-    > lvalue-to-rvalue
-    > array-to-pointer
-    > function-to-pointer
-  > can be polymorphic
-  > can have incomplete type
+  - & throws
+  - cannot be used in left operand of any assignment
+  - can be used to initialize const non-rvalue reference
+  - can be used to initialize rvalue reference
+  - function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
+  - can be converted to prvalue with implicit conversion
+    - lvalue-to-rvalue
+    - array-to-pointer
+    - function-to-pointer
+  - can be polymorphic
+  - can have incomplete type
 
 glvalue (ie, properties shared between lvalues and xvalues)
-  > can be converted to prvalue with implicit conversion
-    > lvalue-to-rvalue
-    > array-to-pointer
-    > function-to-pointer
-  > can be polymorphic
-  > can have incomplete type
+  - can be converted to prvalue with implicit conversion
+    - lvalue-to-rvalue
+    - array-to-pointer
+    - function-to-pointer
+  - can be polymorphic
+  - can have incomplete type
 
 rvalue (ie, properties shared between prvalues and xvalues)
-  > & throws
-  > cannot be used in left operand of any assignment
-  > can be used to initialize const non-rvalue reference
-  > can be used to initialize rvalue reference
-  > function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
+  - & throws
+  - cannot be used in left operand of any assignment
+  - can be used to initialize const non-rvalue reference
+  - can be used to initialize rvalue reference
+  - function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
