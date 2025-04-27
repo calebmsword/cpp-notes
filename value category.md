@@ -93,54 +93,57 @@ An xvalue refers to data that is flagged as movable. Not all xvalues are guarant
 
 ### Value categories in ugly detail
 
-What follows is a precise categorization of all expressions told in a format extremely similar to cppreference's page about value categories. Please keep in mind that operator overloading can completely override anything describe here, in which case the implementation of the override (specifically its return value) will determine the value category of the overloaded operation. 
+What follows is a precise categorization of all expressions told in a format extremely similar to cppreference's page about value categories. This is not meant to be read front-to-back; I would recommend using it as a reference. Please keep in mind that operator overloading can completely override anything describe here, in which case the implementation of the override (specifically its return value) will determine the value category of the overloaded operation. 
 
-lvalue
+Common lvalues:
  - names of variables (or functions, templates, data members)
  - all assignment expressions (=, +=, *=, etc)
   - The variable that is assigned to is the result of the expression, hence the result of the expression is locatable. 
  - an expression using the "dereference" operator (*)
   - Data acquired from an explicit address in memory is obviously locatable. 
  - string literals
-   - the specification demands that object referenced by a string persists through the lifetime of the program (the terminology they use is "static storage"), so it is safe to make strings locatable. Many implementations will create only one object if you declare two string literals with the exact same content.
- Key properties:
-  > & is defined
-  > can be used as left operand of assignment operators, but only if value is modifiable
+   - The specification demands that object referenced by a string persists through the lifetime of the program (the terminology they use is "static storage"), so it is safe to make string literals locatable.
+ - _Key properties:_
+   - `&` is defined (please see an exception to this case in the discussion regarding functions below)
+   - can be used as left operand of assignment operators, but only if value is modifiable
 
-prvalue
- - any non-string literal (7, 3.3f, etc)
- - arithmetic expressions (+, -, *, %, etc)
- - logical expressions (&&, ||, etc)
- - comparison expressions (<, >, >=, etc)
+Common prvalues:
+ - any non-string literal (`7`, `3.3f`, etc)
+ - arithmetic expressions (`+`, `-`, `*`, `%`, etc)
+ - logical expressions (`&&`, `||`, etc)
+ - comparison expressions (`<`, `>`, `>=`, etc)
  - enumerator
    - enumerators are evaluated at compile time. the resultant machine code is indistinguishable from C++ code which uses an integer literal instead of an enum.
  - lambda expression
- Key properties:
-  > & throws
-  > cannot be used in left operand of any assignment
-  > can be used to initialize const lvalue reference (const MyClass& myRef = <prvalue>;)
-  > can be used to initialize rvalue reference (MyClass&& myRef = <prvalue>;)
-  > function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
+ -  _Key properties:_
+    - `&` throws
+    - cannot be used in left operand of any assignment
+    - can be used to initialize const lvalue reference (`const MyClass& myRef = <prvalue>;`)
+    - can be used to initialize rvalue reference (`MyClass&& myRef = <prvalue>;`)
+    - function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
 
-xvalue
+Common xvalues:
  - a cast expression to rvalue reference to object type (static_cast<MyClass&&>(myClassInstance))
  - or a function that returns an rvalue reference to object type (std::move(myClassInstance))
- Key properties:
-  > & throws
-  > cannot be used in left operand of any assignment
-  > can be used to initialize const non-rvalue reference (const MyClass& myRef = <xvalue>;)
-  > can be used to initialize rvalue reference (MyClass&& myRef = <xvalue>;)
-  > function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
+ - _Key properties:_
+   - `&` throws
+   - cannot be used in left operand of any assignment
+   - can be used to initialize const non-rvalue reference (`const MyClass& myRef = <xvalue>;`)
+   - can be used to initialize rvalue reference (`MyClass&& myRef = <xvalue>;`)
+   - function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
 
+### Additional cases: 
 
-=================================
- Additional cases: 
-=================================
-functions:
+function names:
+ - A function name that is not a class method is always an lvalue. However, if a function is overloaded, giving the function name to `&` is ambiguous so the compiler will throw. As far as I am aware this is the only case where an lvalue cannot be given to the `&` operator.  
+
+function calls:
+ - if the return type is not a reference, then prvalue.
+     - Function calls almost always compute prvalues.
  - if the return type is an lvalue reference, then the function call is an lvalue
-  - (I find this decision extremely troubling since this creates a situation where the return value of a function is treated as a value with identity, even if the the lvalue reference points to something in the function that goes out of scope once the function completes execution. As such lvalue references returned by functions almost always induce undefined behavior. This greatly vexes me.)
- - if the return type is an rvalue reference, then the function call is an xvalue
- - otherwise, prvalue
+     - (This is only useful to create operator overloads which return lvalues. Any other usage is a severe code smell.)
+ - if the return type is an rvalue reference of object type, then the function call is an xvalue
+     - (This seems to exists mostly so that `std::move` could be added to the language. I haven't run into another situation where this is useful.)
 
 comma operator
  - the value category of the final comma-separated expression is the value category of the comma expression
@@ -148,23 +151,21 @@ comma operator
 ternary
  - the value category of the resulting branch is the value category of the ternary expression
 
-address-of operator (&)
+address-of operator (`&`)
  - a prvalue.
- - one might argue that this represents identity since the value of an address-of expression is the literal address of some object. However, it is possible to get the address of something that is later deallocated and as such we cannot guarantee forever that the result of a & operator is always the identity of an object.
+ - one might argue that this represents identity since the value of an address-of expression is the literal address of some object. However, it is possible to get the address of something that is later deallocated and as such we cannot guarantee forever that the result of a & operator is always the identity of an object. Contrast this with a reference which is guaranteed to point to some value.
 
-subscript (a[n])
+subscript (`a[n]`)
  - an lvalue if one operand is an lvalue, an xvalue if one operand is an rvalue
-  - Since a subscript is fully equivalent to a dereference (*(a + n)) an array lookup is getting the identity of something. This expression does not have guaranteed addressibility if a does not have guaranteed addressibility (which occurs if a is an rvalue), so it must be some type of rvalue. Hence before C++11 we see this must have an xvalue here. Post C++17, the language is specified to materialize whatever object is created in this situation so it cannot be a prvalue.
-  - Q: hold on, why isn't a an xvalue if a is an rvalue?
-  - A: the language does not distinguish between an array and a pointer of the type of an array. See my argument for why &a does not have identity. The same argument can be used to show that a pointer cannot guarantee identity.
+  - Since a subscript is fully equivalent to a dereference (*(a + n)) an array lookup is an evaluation which guarantees the identity of something. But it is unsafe to make this result locatable if `a` is not locatable (if `a` is an rvalue), so `a[n]` it must be some type of rvalue if `a` is an rvalue. The only rvalue which carries identity is the xvalue so we see this must be an xvalue if `a` is an rvalue.
 
-pre-increment, pre-decrement (++a, --a)
+pre-increment, pre-decrement (`++a`, `--a`)
  - an lvalue (it is addressable since the result of the expression is the new value of the variable)
 
 post-increment, post-decrement (a++, a--)
  - a prvalue (it is temporary since the result of the expression is different from the value of the variable in subsequent lines of code)
 
-a.m
+`a.m`
  -non-function, non-enumerator member
   - an lvalue if a is an lvalue, an xvalue if a is an rvalue
   ```
@@ -184,7 +185,7 @@ a.m
     foo().b  // xvalue
   }
   ```
-   - classes are a generalization of C structs, and one non-enumerator data member can be accessed from another using pointer arithmetic (yes, this means there are situations where you can access private fields of an objects. very unfortunate language design.) hence data member access should be treated in the same manner as array access. See my disucssion about the subscript operator for more information.
+   - Classes are a generalization of C structs, and one non-enumerator data member of a struct can be accessed from another using pointer arithmetic (yes, this means there are situations where you can access private fields of an objects. Very unfortunate language design.) Hence data member access should be treated in the same manner as array access. See my disucssion about the subscript operator for more information.
 
 
  -non-function, enumerator member
@@ -206,22 +207,23 @@ a.m
 
     - enumerators are evaluated at compile time. as such there is no "enum object" created at runtime whose address is looked up when an enum is used in your program. the value of that enum is hard-coded into the machine instructions for your program, and as such the resulting program is indistinguishable from one in which you used a integer literal (if the enum is of integer type) instead of the enum. this is why enums are not lvalues.
 
-p->m
+`p->m`
  -non-function, non-enumerator member
   - an lvalue
 
  -non-function, enumerator member
   - a prvalue
 
-a.*p, a->*p
+`a.*p`, `a->*p`
  - an lvalue if a is an lvalue, an xvalue if a is an rvalue
 
-function member access of object (a.f, p->f, a.*pf, p->*pf)
+function member access of object (`a.f`, `p->f`, `a.*pf`, `p->*pf`)
  - a prvalue. these are particularly restricted, they can only be used as the left-hand argument of a function call and the compiler will throw if you try to use this expression for anything other than a function call. (you could argue this implies the existence of an additional value category if you wanted to make C++ developers lives even harder).
+ - I do not know why these are prvalues If 
 
 this
  - prvalue
- - `this` behaves like a pointer to an instance of a class, but it cannot be reassigned and & is not defined for it. It seems to me that xvalue would be a more appropriate categorization then, oh well.
+ - `this` is a pointer. See my discussion about `&`; the same argument can be used to argue we do not consider pointers to have identity. 
 
 template parameters
  - non-type template parameter of lvalue reference type
@@ -236,18 +238,18 @@ specialization of a concept
  - prvalue
 
 cast expressions
- - xvalue if casted to rvalue reference type (by definition)
+ - xvalue if casted to rvalue reference of object type (by definition)
  - lvalue if casted to lvalue reference type
-   - (I really don't know why lvalue reference casts are not xvalues, for all the same reasoning that rvalue reference casts of objects are xvalues. However, the C++98 standard decided these were lvalues, and no changes to the taxonomy from C++11 was going to change something that once was an lvalue into an rvalue, so this is easy to explain from C++'s insistance on backwards-compatibility. The real answer is probably because move semantics would become even more confusing than they already are if both lvalue reference casts and rvalue reference casts could be moved from.)
+   - (I really don't know why lvalue reference casts are not xvalues, for all the same reasoning that rvalue reference casts of objects are xvalues. However, the C++98 standard decided these were lvalues, and no changes to the taxonomy from C++11 was going to change something that once was an lvalue into an rvalue, so this is easy to explain from C++'s insistance on backwards-compatibility. Furthermore, move semantics would become even more confusing than they already are if both lvalue reference casts and rvalue reference casts could be moved from.)
  - prvalue otherwise
 
 void expressions
  - void functions, casting something as void, and throw expressions are all prvalues, but these expressions are not allowed to be used as function arguments or used to initialize references. throw expressions may be used in either branch of the ternary operator. (you could argue this implies the existence of an additional value category if you wanted to make C++ developers lives even harder).
 
 
-=================================
- Properties of value categories: 
-=================================
+
+### Properties of value categories: 
+
 lvalue
  > & is defined
  > can be used as left operand of assignment operators (if value is modifiable)
