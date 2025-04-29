@@ -9,7 +9,7 @@ Two defining characteristics of expressions are **value**, which is the actual v
  - lvalues were expressions whose addresses are guaranteed to made available to the programmer. Hence, we will say that lvalues are **locatable**.
  - There is no guarantee the address of an rvalues will be made available to the programmer. Hence, we will say that rvalues are **latent**.
 
-Some examples will elucidate:
+Most of the time, there is a clear reason the language makes certain values locatable and certain values latent. Some examples will elucidate:
 
 ```c++
 int x = 3;
