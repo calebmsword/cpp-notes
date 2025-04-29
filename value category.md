@@ -1,6 +1,6 @@
 Any expression in C++ can fall into one of a small number of categories called **value categories** of which the two most important are **rvalues** and **lvalues**. All expressions are either an rvalue or lvalue. This terminology is often criticized, and rightly so. First of all, they should be called "expression categories", as they categorize expressions, not values, and we should have "l-expression" and "r-expression" categories instead of rvalue and lvalue. Furthermore, lvalue and rvalue brings to mind "left value" and "right values", and you might think there may be some significant correlation between leftness/rightness and lvalue/rvalue. The only meaningful correlation is that lvalues and rvalues are opposites; an expression cannot be both an rvalue and an lvalue at the same time. Trying to make any further connection between leftness/rightness and lvalue/rvalue only leads to confusion.
 
-To discuss the specifics of value categories with we will first present their historical evolution.
+It is easiest to define value categories by describing their historical evolution:
 
 ## Before C++11
 
