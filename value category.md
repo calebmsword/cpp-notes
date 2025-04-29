@@ -128,7 +128,7 @@ I will mention that the standard says that xvalues are "eXpiring values", termin
  - The move constructor or move assignment overload could be implemented in a faulty or nefarious way which does not perform the expected behavior.
  - The user could have an lvalue pointing to some object, cast it as an xvalue and move it to some other variable, and then access the original lvalue and manipulate the object that was moved from. Such a thing would be considered horrendous style but it is entirely possible. In this example the data referenced by the xvalue is not immediately trashed after use, and it is bad to use terminlogy which suggests the opposite.
    
-An xvalue is either 1) a latent expression with identity or 2) a materialization of a prvalue. There is no guarantee that an xvalues is expiring/temporary. We are better off defining things for what they actually are instead of how we expect them to be used.
+An xvalue is either 1) a latent expression with identity or 2) a materialization of a prvalue. There is no guarantee that an xvalue is expiring/temporary. We are better off defining things for what they actually are instead of how we expect them to be used.
 
 ### Value categories in ugly detail
 
