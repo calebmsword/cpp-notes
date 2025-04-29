@@ -251,7 +251,7 @@ post-increment, post-decrement (a++, a--)
 
 function member access of object (`a.f`, `p->f`, `a.*pf`, `p->*pf`)
  - a prvalue. these are particularly restricted, they can only be used as the left-hand argument of a function call and the compiler will throw if you try to use this expression for anything other than a function call. (you could argue this implies the existence of an additional value category if you wanted to make C++ developers lives even harder).
- - I do not know why these are prvalues If 
+ - I do not know why these are prvalues if regular functions are lvalues. Both are named functions, right? It seems the languages considers `MyClass::foo` and `myInstance.foo` to be very different things (the former can be given to the `&` operator). I'll provide a justification for this if I ever find a good one.
 
 this
  - prvalue
