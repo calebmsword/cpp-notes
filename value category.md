@@ -1,5 +1,31 @@
 Any expression in C++ can fall into one of a small number of categories called **value categories** of which the two most important are **rvalues** and **lvalues**. All expressions are either an rvalue or lvalue. This terminology is often criticized, and rightly so. First of all, they should be called "expression categories", as they categorize expressions, not values, and we should have "l-expression" and "r-expression" categories instead of rvalue and lvalue. Furthermore, lvalue and rvalue brings to mind "left value" and "right values", and you might think there may be some significant correlation between leftness/rightness and lvalue/rvalue. The only meaningful correlation is that lvalues and rvalues are opposites; an expression cannot be both an rvalue and an lvalue at the same time. Trying to find any further correlations only leads to confusion.
 
+<details>
+<summary>Note</summary>
+<br>
+
+The names "lvalue" and "rvalue" are historical artifacts. The esotric language [CPL](http://www.math.bas.bg/~bantchev/place/cpl/features.pdf) (The Cambridge Programming Language) allowed expressions to be evaluated in "left-hand" mode, where the expression is on the left side of a value assignment, and any expression not evaluated in left-hand mode was evaluated in "right-hand" mode. C inherited this terminology with the concept of the lvalue. According to section A5 from the "The C Programming Language", 2nd Edition from Kernighan and Ritchie,
+
+> An <i>object</i> is a named region of storage; and <i>lvalue</i> is an expression referring to an object. An obvious example of an lvalue expression is an identifier with suitable type and storage class. There are operators that yield lavalues: for example, if `E` is an expression of pointer type, then `*E` is an lvalue expression referring to the object to which `E` points. The name "lvalue" comes from the assignment expression `E1 = E2` in which the left operation `E1` must be an lvalue expression.
+
+Since C++ is (almost) a superset of C, it also inherits the concept of an lvalue and also introduces the term "rvalue" for anything that isn't an lvalue, but C++'s additional complexity results in situations where an lvalue cannot appear on the left hand side of an assignment or where an rvalue appears on the left hand side of an assignment. To see why I discourage you from thinking of lvalues and rvalues as what can be allowed to appear on either side of an `=` operation, consider the following snippet:
+
+```c++
+#include <iostream>
+
+class A{};
+
+int main() {
+  const A a;
+  // a = A();  // this would throw; a is const and cannot be modified
+  std::cout << &(A() = a) << "\n";  // the result of a constructor is a prvalue, yet this is allowed to compile
+}
+```
+
+<br>
+<br>
+</details>
+
 It is easiest to define value categories by describing their historical evolution:
 
 ## Before C++11
