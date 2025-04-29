@@ -18,7 +18,7 @@ class A{};
 int main() {
   const A a;
   // a = A();  // this would throw; a is const and cannot be modified
-  std::cout << &(A() = a) << "\n";  // the result of a constructor is a prvalue, yet this is allowed to compile
+  std::cout << &(A() = a) << "\n";  // the result of a constructor is an rvalue, yet this is allowed to compile
 }
 ```
 
