@@ -93,6 +93,14 @@ An xvalue is both a glvalue and an rvalue.
 
 The new term xvalue was originally introduced without any meaning. I prefer to think of xvalue as being short for "cross value" since an xvalue contains a cross of a characteristic usually associated with lvalues (identity) and the characteristic of pre-C++11 rvalues (latency). There is a small class of expressions that were rvalues before C++11 that are now also xvalues, but the rvalue cast expression and the function which returns an rvalue reference are by far the most important and common examples encountered in practice so it will be what we will emphasize in the current discussion.
 
+<details>
+<summary>Note</summary>
+<br>
+The C++11 standard defines rvalues as expressions which are movable. In my opinion, this is a circular definition. See the first note in this section.
+<br>
+<br>
+</details>
+
 ## C++17
 
 C++17 added more wrinkles to the taxonomy. Before C++17, we could have a prvalue which represented a latent object (for example, a function call of a function whose return statement calls a class constructor). However, if a prvalue is of a class type, it no longer represents an object but instead acts as a "free coupon" for that result object. Hence there is no expensive object copy when a prvalue result is returned by a function (since C++ is a pass-by-value language), we simply "xerox the coupon" for the actual resultant object. The specification demands that, at some point, the object is **materialized** (the coupon is exchanged) into the actual result object, and which point the specification also demands that the prvalue is converted into an xvalue.
