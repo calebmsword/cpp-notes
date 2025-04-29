@@ -114,7 +114,7 @@ In short:
  - lvalues are **locatable**--their address is guaranteed to be made available to the programmer
  - rvalues are **latent**--their address is only made available through assignment to a reference which allows indirect access to the address of the value
  - changes to the C++11 and C++17 do not change these facts, and only serve to introduce two specific types of rvalues (prvalues and xvalues)
- - after C++11 and before C++17,
+ - after C++11,
    - xvalues are latent objects with identity,
    - prvalues are latent object without identity, and
    - xvalues and prvalues are specific types of rvalues.
