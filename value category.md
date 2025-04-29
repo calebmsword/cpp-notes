@@ -72,31 +72,51 @@ The C++ standard uses the term **movable** to describe objects which induce an r
 
 </details>
 
-In C++11, the standards committee generalized the concept of "locatibility" into what they called "identity" and wanted to categorize expressions whose evaluation corresponds to an object's identity. A reference represents identity since it is an alias to the object itself. We also consider "locatable" expressions (lvalues) as those with identity since the & operator can be used with them to find an object's specific location in memory (the identity of an object is determined by its unique memory location). Clearly identity is a characteristic of lvalues, but if we were somehow able to create a latent reference we would have an rvalue with identity. Such an expression manifested in the language with the *rvalue reference cast* introduced in C++11. Casting an object into an rvalue reference of object type results in latent data (the language specification does not allow this expression to be provided to `&`) but since it is a reference its value *is* the identity of that object. The C++ standards committee felt this expression was best represented by a third value category and the pre-existing value category taxonomy was salvaged by changing the meaning of the word "rvalue":
+In C++11, the standards committee wanted to categorize expressions whose evaluation determines an object's **identity**. Expressions determine identity if they access a specific address in memory, act as an umabigious identifier for some specific object, or if it is an lvalue. There are many types of expressions which are treated as "determining identity":
+
+ 1) **lvalues**. This is because the address of an object is immediately available to the programmer if they use the `&` operator of any lvalue, and we can consider the address of an object as its identity.
+ 2) **Expressions that evaluate to references**. A reference is an alias to an existing object, cannot be reassigned, and if necessary extends the lifetime of the referenced object to that of the reference. We have extremely high assurance that a reference refers to one specific object and therefore the reference is treated as an identity. There are two types of expressions which evaluate a reference: 1) a function call of a function which returns a reference, or 2) a cast to a reference.
+ 3) **Array subscript operations**. When `a` is an array then `a[n]` is syntactic sugar for `*(a + n)`. We are explicitly evaluating an address in memory and accessing whatever object is there, and as such this evaluation is treated as "determining identity".
+ 4) **Non-enumerator, non-static-function data member access**. Enumerators are evaluated at compile time so is no address associated with an enumerator at runtime, and as such enumerators are not treated as something with identity. Function members are sometimes evaluated at runtime due to virtual functions, so it is sometimes ambigious as to what function is being referred to by a function member access, and as such the language does not consider these to carry identity either. In all other cases, member access acts a name to a specific object in memory and as such the standard treats the operation as one that "determines identity".
+ 5) **Static member function access** is functionally equivalent to accessing a function within a namespace. Since ordinary function names are treated as lvalues, the language also treats member access of static functions as lvalues.
+
+The C++ standards committee recognized the existence of latent expressions with identity when they introduced the *rvalue reference cast* introduced in C++11. An rvalue reference of object type results in latent data (the language specification does not allow this expression to be provided to `&`) but since it is a reference its value *is* the identity of that object. The C++ standards committee felt this expression was best represented by a third value category and the pre-existing value category taxonomy was salvaged by changing the meaning of the word "rvalue":
  - nearly all of what we used to call rvalues are now called **prvalues** ("pure rvalues"),
  - what we used to call lvalues are still called lvalues,
  - an __rvalue reference cast expression of an object__ is of a new value category called **xvalue**,
    - __a function which returns an rvalue reference of an object__ is also considered an xvalue,
  - and rvalue is now an umbrella term: __xvalues and prvalues are specific types of rvalues__.
 
+<details>
+<summary>Note</summary>
+<br>
+There also exists the less useful umbrella term <b>glvalue</b>, short for "general lvalue". xvalues and lvalues are specific types of glvalues. An xvalue is both a glvalue and an rvalue.
+<br>
+<br>
+</details>
+
 As a result of this change, everything that was an lvalue before was still an lvalue and everything that used to be an rvalue was still an rvalue, but now there two specific and mutually-exclusive types of rvalues. The xvalue is a latent object with identity. prvalues are latent objects without identity.
 
 <details>
 <summary>Note</summary>
 <br>
-There also exists the less useful umbrella term **glvalue**, short for "general lvalue". xvalues and lvalues are specific types of glvalues.
- 
-An xvalue is both a glvalue and an rvalue.
+The C++11 standard defines rvalues as expressions which are movable. This is a circular definition; see the overview of move semantics at the beginning of this section. I believe is better to continue to define rvalues as latent expressions even after the C++11 standard.
 <br>
 <br>
 </details>
 
-The new term xvalue was originally introduced without any meaning. I prefer to think of xvalue as being short for "cross value" since an xvalue contains a cross of a characteristic usually associated with lvalues (identity) and the characteristic of pre-C++11 rvalues (latency). There is a small class of expressions that were rvalues before C++11 that are now also xvalues, but the rvalue cast expression and the function which returns an rvalue reference are by far the most important and common examples encountered in practice so it will be what we will emphasize in the current discussion.
+The term "xvalue" was originally introduced without any meaning. I prefer to think of xvalue as being short for "cross value" since an xvalue contains a cross of a characteristic usually associated with lvalues (identity) and the characteristic of pre-C++11 rvalues (latency). There is a small class of expressions that were rvalues before C++11 that are now also xvalues, but the rvalue cast expression and the function which returns an rvalue reference are by far the most important and common examples encountered in practice.
 
 <details>
 <summary>Note</summary>
 <br>
-The C++11 standard defines rvalues as expressions which are movable. In my opinion, this is a circular definition. See the first note in this section.
+Things that were rvalues before C++11 that the standards committee recognizes as xvalues are:
+
+<ol>
+  <li><b>Non-static, non-enumerator, non-function member access of an rvalue class or struct</b>. Static data members are still treated as locatable since static members are not associated with the lifetime of a class/struct instance.</li>
+  <li><b>Array subscripting of an rvalue array</b>.</li>
+</ol>
+ 
 <br>
 <br>
 </details>
@@ -201,7 +221,7 @@ subscript (`a[n]`)
 pre-increment, pre-decrement (`++a`, `--a`)
  - an lvalue (it is addressable since the result of the expression is the new value of the variable)
 
-post-increment, post-decrement (a++, a--)
+post-increment, post-decrement (`a++`, `a--`)
  - a prvalue (it is temporary since the result of the expression is different from the value of the variable in subsequent lines of code)
 
 `a.m`
