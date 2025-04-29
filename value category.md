@@ -386,6 +386,7 @@ rvalue (ie, properties shared between prvalues and xvalues)
 # Acknowledgements
 
  - cppreference's [page](https://en.cppreference.com/w/cpp/language/value_category) on value categories was invaluable for this writeup.
+ - The [official drafts](https://www.open-std.org/JTC1/SC22/WG21/docs/standards) for the C++ specification were also an invaluable resource.
  - Arno Schödl's [talk](https://www.youtube.com/watch?v=s9vBk5CxFyY) "The C++ rvalue lifetime disaster" didn't specifically influence anything specific on this writeup but the time I spent afterwards ruminating on the lifetimes of rvalues was invaluable.
  - Arthur O'Dwyer's blog posts ([this](https://quuxplusone.github.io/blog/2019/03/11/value-category-is-not-lifetime/) and [this](https://quuxplusone.github.io/blog/2020/03/04/rvalue-lifetime-disaster/)) regarding C++ lifetime encouraged me to avoid using the term "temporary" when discussing rvalues. I would not have introduced the concept of "rvalues are latent" without these writeups.
  - Anders Schau Knatten's [talk](https://www.youtube.com/watch?v=hkyZ8L343cU) "lvalues, rvalues, glvalues, prvalues, xvalues, help!", while a talk I dislike overall, introduced the shocking edge case that a `std::string` can appear on the left hand side of an assignment operation which helped me learn about default copy assignment overload behavior.
