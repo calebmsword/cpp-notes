@@ -184,7 +184,7 @@ ternary
 
 address-of operator (`&`)
  - a prvalue.
- - one might argue that this represents identity since the value of an address-of expression is the literal address of some object. However, it is possible to get the address of something that is later deallocated and as such we cannot guarantee forever that the result of a & operator is always the identity of an object. Contrast this with a reference which is guaranteed to point to some value.
+ - one might argue that this represents identity since the value of an address-of expression is the literal address of some object. However, it is possible to get the address of something that is later deallocated and as such we cannot guarantee forever that the result of a & operator is always the identity of an object. Contrast this with a reference, which we can have high confidence actually points to something. (It is strictly possible to cause references to dangle with abuses of the language. Try, for example, `int& null_reference = *static_cast<int*>(nullptr);`.)
 
 subscript (`a[n]`)
  - an lvalue if one operand is an lvalue, an xvalue if one operand is an rvalue
