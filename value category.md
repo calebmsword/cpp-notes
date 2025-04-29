@@ -98,7 +98,7 @@ The C++ standard uses the term **movable** to describe objects which induce an r
 
 </details>
 
-In C++11, the standards committee wanted to categorize expressions whose evaluation determines an object's **identity**. Expressions determine identity if they access a specific address in memory, act as an umabigious identifier for some specific object, or if it is an lvalue. There are many types of expressions which are treated as "determining identity":
+In C++11, the standards committee wanted to categorize expressions whose evaluation determines an object's **identity**. Expressions determine identity if they access a specific address in memory, act as an umabigious identifier for some specific object, or if they are lvalues. There are many types of expressions which are treated as "determining identity":
 
  1) **lvalues**. This is because the address of an object is immediately available to the programmer if they use the `&` operator of any lvalue, and we can consider the address of an object as its identity.
  2) **Expressions that evaluate to references**. A reference is an alias to an existing object, cannot be reassigned, and if necessary extends the lifetime of the referenced object to that of the reference. We have extremely high assurance that a reference refers to one specific object and therefore the reference is treated as an identity. There are two types of expressions which evaluate a reference: 1) a function call of a function which returns a reference, or 2) a cast to a reference.
