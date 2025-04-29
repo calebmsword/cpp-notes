@@ -236,7 +236,7 @@ post-increment, post-decrement (a++, a--)
     a.b;     // prvalue
   }
   ```
-
+`
     - enumerators are evaluated at compile time. as such there is no "enum object" created at runtime whose address is looked up when an enum is used in your program. the value of that enum is hard-coded into the machine instructions for your program, and as such the resulting program is indistinguishable from one in which you used a integer literal (if the enum is of integer type) instead of the enum. this is why enums are not lvalues.
 
 `p->m`
