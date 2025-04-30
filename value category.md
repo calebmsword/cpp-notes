@@ -121,6 +121,14 @@ There also exists the less useful umbrella term <b>glvalue</b>, short for "gener
 <br>
 </details>
 
+<details>
+<summary>Note</summary>
+<br>
+The only way to create an rvalue reference cast expression of non-object type is if you cast a function to an rvalue reference to that function. rvalue references of functions are treated as lvalues. Most situations where a reference to a function could be used are best solved with lambdas so this is not a commonly used language feature.
+<br>
+<br>
+</details>
+
 As a result of this change, everything that was an lvalue before was still an lvalue and everything that used to be an rvalue was still an rvalue, but now there two specific and mutually-exclusive types of rvalues. The xvalue is a latent object with identity. prvalues are latent objects without identity.
 
 <details>
