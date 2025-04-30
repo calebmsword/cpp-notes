@@ -74,7 +74,7 @@ Some people call rvalues "temporary values", and unfortunately this sort of term
 It is a common misconception that lvalues and rvalues indicate the lifetime of data; one might think that lvalues are expressions whose data has persistent lifetime and rvalues are expressions whose data has temporary lifetime. The third example shows why rvalues are not, in general, temporary. I regret to inform that some abuses of the language specification make it possible to create lvalues that refer to data that is no longer in scope. The lesson is clear: in general, do not associate value category with lifetime.
 </details>
 
-Here are some examples of the most common lvalues and rvalues:
+Here are some examples of the most common lvalues and rvalues: (it should be understood that these apply to default, built-in behaviors of C++ operators. Operator overloading can completely override any of the following facts.)
 
 Common lvalues:
  - names of variables (or functions, templates, data members)
