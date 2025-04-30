@@ -185,6 +185,8 @@ In short:
    - prvalues not created from lvalue-to-rvalue conversions are immaterial representations of result objects, and
    - xvalues can now also represent materializations of immaterial prvalues.
 
+The terms **locatable**, **latent**, and **immaterial** are non-standard terminologies I invented for this write-up. Do not expect other developers to know what they mean. (But please feel free to spread their usage.)
+
 ### An aside on the xvalue terminology
 
 I will mention that the standard says that xvalues are "eXpiring values", terminology I strongly dislike. Since most practical usage of xvalues is to call a move constructor or move assignment, the value represented by the xvalue is meant to be "moved from" and eventually discarded, which I suppose what this terminology is supposed to mean. This hinges on the programmer adhering to convention, however:
