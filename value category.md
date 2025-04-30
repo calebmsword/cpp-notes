@@ -103,22 +103,15 @@ Common rvalues:
     - can be used to initialize rvalue reference (`MyClass&& myRef = <prvalue>;`)
     - function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
 
-This definition has one unfortunate edge case. Names of functions are considered lvalues, yet if you overload a function, passing that function to `&` results in a compilation failure since it is ambiguous which function you should receive the address of. It would be more accurate to say that lvalues are 1) locatables or 2) names of functions.
+This definition has one unfortunate edge case. Names of functions are considered lvalues, yet if you overload a function, passing that function to `&` results in a compilation failure since it is ambiguous which function you should receive the address of. The value categorization of methods is also perplexing:
 
-<details>
-<summary>Note</summary>
-<br>
+ - If we access the name of a method with an qualified-id (`MyClass::method_name`) the result is considered an lvalue.
+ - Function member access of static functions (`my_instance.static_method`) the result is also considered an lvalue.
+ - But non-static function member access is considered an *rvalue* (`my_instance.method_name`).
 
-In general, the value categorization of function names is full of head-scratchers:
+The names of functions are, in general, potentially ambiguous because overloading is always possible. Perhaps the difference is that non-static function member access _can_ be resolved at runtime if the method is declared virtual while the other function names are guaranteed to be resolved at compile time. Personally, I would have preferred that function names were rvalues, always, but we are stuck with the decision that was made.
 
- - If we access the name of a method with an qualified-id (MyClass::method_name) the result is considered an lvalue.
- - Function member access of static functions (my_instance.static_method) are also treated as lvalues.
- - But non-static function member access is treated as rvalues (my_instance.method_name).
-   - If the name of the class is a reference or pointer then it can be ambiguous what function is referred to because of virtual functions and polymorphism. But this occurs even if we access a member of a non-pointer/non-reference name for the object. It is unclear why ordinary functions which can be overloaded are treated as lvalues while methods, which can be overridden, are latent.
- 
-<br>
-<br>
-</details>
+Evidently the definition of lvalues I provided is not quite correct. It would be more accurate to say that lvalues are 1) locatables or 2) names of functions or static methods.
 
 ## C++11
 
@@ -209,7 +202,7 @@ C++17 added more wrinkles to the taxonomy. Before C++17, we could have a prvalue
 In short:
  - the distinguishing factor between lvalues and rvalues is whether or not the address of the value of the expression is guaranteed to be available to the programmer
  - lvalues are **locatable**--their address is made immediately avaiable through the `&` operator
- - function names are also considered lvalues.
+ - names of functions and static methods are also considered lvalues.
  - rvalues are **latent**--their address is not immediately available; they cannot be provided to the `&` operator
  - changes to the C++11 and C++17 do not change these facts, and only serve to introduce two specific types of rvalues (prvalues and xvalues)
  - after C++11,
