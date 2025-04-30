@@ -60,7 +60,7 @@ if (a + b == 3) {   // <-- "a + b" is an rvalue
 ```c++
  - int& number_reference = 3; // '3' here is an rvalue.
 ```
- - Integer literals are, in general, rvalues. While rvalues are latent, their address can be saved __if__ they stored into a reference. In this case, the location in memory for `3` will be referenced by `number_reference` and the lifetime of the value for the literal is extended such that it shares the lifetime of the reference. When we find the address of `number_reference` we find the address of the value that was represented by the expression `3`. That is, `3`'s address is made available indirectly through the reference.
+ - Integer literals are, in general, rvalues. While rvalues are latent, there some situations where the address can be saved __if__ they stored into a reference. In this case, the location in memory for `3` will be referenced by `number_reference` and the lifetime of the value for the literal is extended such that it shares the lifetime of the reference. When we find the address of `number_reference` we find the address of the value that was represented by the expression `3`. That is, `3`'s address is made available indirectly through the reference.
 
 <details>
 <summary>Note</summary>
