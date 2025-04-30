@@ -4,7 +4,7 @@ Any expression in C++ can fall into one of a small number of categories called *
 <summary>Note</summary>
 <br>
 
-The names "lvalue" and "rvalue" are historical artifacts. The esotric language [CPL](http://www.math.bas.bg/~bantchev/place/cpl/features.pdf) (The Combined Programming Language) allowed expressions to be evaluated in "left-hand" mode, where the expression is on the left side of a value assignment, and any expression not evaluated in left-hand mode was evaluated in "right-hand" mode. C inherited this terminology with the concept of the lvalue. According to section A5 from the "The C Programming Language", 2nd Edition from Kernighan and Ritchie,
+The names "lvalue" and "rvalue" are historical artifacts. The esoteric language [CPL](http://www.math.bas.bg/~bantchev/place/cpl/features.pdf) (The Combined Programming Language) allowed expressions to be evaluated in "left-hand" mode, where the expression is on the left side of a value assignment, and any expression not evaluated in left-hand mode was evaluated in "right-hand" mode. C inherited this terminology with the concept of the lvalue. According to section A5 from the "The C Programming Language", 2nd Edition from Kernighan and Ritchie,
 
 > An <i>object</i> is a named region of storage; and <i>lvalue</i> is an expression referring to an object. An obvious example of an lvalue expression is an identifier with suitable type and storage class. There are operators that yield lavalues: for example, if `E` is an expression of pointer type, then `*E` is an lvalue expression referring to the object to which `E` points. The name "lvalue" comes from the assignment expression `E1 = E2` in which the left operation `E1` must be an lvalue expression.
 
@@ -22,7 +22,7 @@ int main() {
 }
 ```
 
-Operator overloads can completely hijack the expected behavior of operators, and trivially-copiable classes are implicitly compiled with an operator overload that allows rvalues to appear on the left hand side of a copy assignment.
+(Operator overloads can completely hijack the expected behavior of operators, and trivially-copiable classes are implicitly compiled with an operator overload that allows rvalues to appear on the left hand side of a copy assignment.)
 
 <br>
 <br>
@@ -34,10 +34,10 @@ It is easiest to define value categories by describing their historical evolutio
 
 Two defining characteristics of expressions are **value**, which is the actual value the expression computes, and an **address** which is the physical location in memory where the value is stored. (Expressions in C++ also have **types** but that is not signficant for this discussion.)  Despite what the name suggests, a "value category" tells us something about the __address__ of any given expression:
 
- - lvalues were expressions whose addresses are guaranteed to made available to the programmer. Hence, we will say that lvalues are **locatable**.
- - There is no guarantee the address of an rvalues will be made available to the programmer. Hence, we will say that rvalues are **latent**.
+ - lvalues were expressions whose addresses are guaranteed to made available to the programmer through the `&` operator. Hence, we will say that lvalues are **locatable**.
+ - The addresses of rvalues are not made available to the programmer through the `&` operator. Hence, we will say that rvalues are **latent**.
 
-Most of the time, there is a clear reason the language makes certain values locatable and certain values latent. Some examples will elucidate:
+Most of the time, there is a clear reason the language makes certain expressions locatable and certain expressions latent. Some examples will elucidate:
 
 ```c++
 int x = 3;
@@ -102,6 +102,23 @@ Common rvalues:
     - can be used to initialize const lvalue reference (`const MyClass& myRef = <prvalue>;`)
     - can be used to initialize rvalue reference (`MyClass&& myRef = <prvalue>;`)
     - function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
+
+This definition has one unfortunate edge case. Names of functions are considered lvalues, yet if you overload a function, passing that function to `&` results in a compilation failure since it is ambiguous which function you should receive the address of. It would be more accurate to say that lvalues are 1) locatables or 2) names of functions.
+
+<details>
+<summary>Note</summary>
+<br>
+
+In general, the value categorization of function names is full of head-scratchers:
+
+ - If we access the name of a method with an qualified-id (MyClass::method_name) the result is considered an lvalue.
+ - Function member access of static functions (my_instance.static_method) are also treated as lvalues.
+ - But non-static function member access is treated as rvalues (my_instance.method_name).
+   - If the name of the class is a reference or pointer then it can be ambiguous what function is referred to because of virtual functions and polymorphism. But this occurs even if we access a member of a non-pointer/non-reference name for the object. It is unclear why ordinary functions which can be overloaded are treated as lvalues while methods, which can be overridden, are latent.
+ 
+<br>
+<br>
+</details>
 
 ## C++11
 
@@ -191,14 +208,15 @@ C++17 added more wrinkles to the taxonomy. Before C++17, we could have a prvalue
 
 In short:
  - the distinguishing factor between lvalues and rvalues is whether or not the address of the value of the expression is guaranteed to be available to the programmer
- - lvalues are **locatable**--their address is guaranteed to be made available to the programmer
- - rvalues are **latent**--their address is only made available through assignment to a reference which allows indirect access to the address of the value
+ - lvalues are **locatable**--their address is made immediately avaiable through the `&` operator
+ - function names are also considered lvalues.
+ - rvalues are **latent**--their address is not immediately available; they cannot be provided to the `&` operator
  - changes to the C++11 and C++17 do not change these facts, and only serve to introduce two specific types of rvalues (prvalues and xvalues)
  - after C++11,
    - xvalues are latent expressions with identity, and
    - prvalues are latent expressions without identity 
- - after C++17.
-   - many prvalues are immaterial representations of result objects, and
+ - after C++17,
+   - most prvalues are immaterial representations of result objects, and
    - xvalues can now also represent materializations of immaterial prvalues.
 
 The terms **locatable**, **latent**, and **immaterial** are non-standard terminologies I invented for this write-up. Do not expect other developers to know what they mean. (But please feel free to spread their usage.)
