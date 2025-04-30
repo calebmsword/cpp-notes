@@ -200,10 +200,9 @@ C++17 added more wrinkles to the taxonomy. Before C++17, we could have a prvalue
 ## Summary
 
 In short:
- - the distinguishing factor between lvalues and rvalues is whether or not the address of the value of the expression is guaranteed to be available to the programmer
- - lvalues are **locatable**--their address is made immediately avaiable through the `&` operator
- - names of functions and static methods are also considered lvalues.
- - rvalues are **latent**--their address is not immediately available; they cannot be provided to the `&` operator
+ - lvalues are **locatable**: their address is made immediately available through the `&` operator
+ - as an exception to the previous, names of functions and static methods are also considered lvalues
+ - rvalues are **latent**: their address is not immediately available; they cannot be provided to the `&` operator
  - changes to the C++11 and C++17 do not change these facts, and only serve to introduce two specific types of rvalues (prvalues and xvalues)
  - after C++11,
    - xvalues are latent expressions with identity, and
