@@ -158,19 +158,6 @@ The term "xvalue" was originally introduced without any meaning. I prefer to thi
 
 C++17 added more wrinkles to the taxonomy. Before C++17, we could have a prvalue which represented a latent object (for example, a function call of a function whose return statement calls a class constructor). After C++17, it no longer represents an object but instead acts as a "free coupon" for that result object. Hence there is no expensive object copy when a prvalue result is returned by a function, we simply "xerox the coupon" for the actual resultant object. The specification demands that, at some point, the object is **materialized** (the coupon is exchanged) into the actual result object, and which point the specification also demands that the prvalue is converted into an xvalue. We will use the term **immaterial** to describe a prvalue which eventually materializes into an xvalue. 
 
-Most prvalues are now immaterials that are eventually materialized into an xvalue. This allows the language to remove unnecessary copies of objects. With this new feature, we can no longer bind prvalues to rvalue references. Instead, the prvalue is implicitly materialized into an xvalue and that xvalue is bound to the reference. (Before C++17 it was said that all rvalues are movable. Now, only xvalues are movable.)
-
-There are situations where a prvalue is not an immaterial. For example, if we assign a variable to some lvalue expression:
-
-```c++
-int() {
-  int b = 7;
-  int a = b;  // lvalue "b" is assigned to "a"
-}
-```
-
-The language implicitly converts the lvalue to an prvalue in a process known as **lvalue-to-rvalue** conversion. (This is not behavior new to C++17; the language has always behaved in this way.) It should be understood that there are [many other situations](https://en.cppreference.com/w/cpp/language/implicit_conversion#Lvalue-to-rvalue_conversion) where lvalue-to-rvalue conversions occur. The vast majority of lvalue-to-rvalue conversions do not create immaterial prvalues--they behave exactly like C++11 prvalues.  
-
 ## Summary
 
 In short:
@@ -182,7 +169,7 @@ In short:
    - xvalues are latent expressions with identity, and
    - prvalues are latent expressions without identity 
  - after C++17.
-   - prvalues not created from lvalue-to-rvalue conversions are immaterial representations of result objects, and
+   - many prvalues are immaterial representations of result objects, and
    - xvalues can now also represent materializations of immaterial prvalues.
 
 The terms **locatable**, **latent**, and **immaterial** are non-standard terminologies I invented for this write-up. Do not expect other developers to know what they mean. (But please feel free to spread their usage.)
@@ -195,7 +182,7 @@ I will mention that the standard says that xvalues are "eXpiring values", termin
  - The move constructor or move assignment overload could be implemented in a faulty or nefarious way which does not perform the expected behavior.
  - The user could have an lvalue pointing to some object, cast it as an xvalue and move it to some other variable, and then access the original lvalue and manipulate the object that was moved from. Such a thing would be considered horrendous style but it is entirely possible. In this example the data referenced by the xvalue is not immediately trashed after use, and it is bad to use terminlogy which suggests the opposite.
    
-An xvalue is either 1) a latent expression with identity or 2) a materialization of a prvalue. There is no guarantee that an xvalue is expiring/temporary. We are better off defining things for what they actually are instead of how we expect them to be used.
+An xvalue is either 1) a latent expression with identity or 2) a materialization of a prvalue. There is no guarantee that an xvalue refers to something expiring/temporary. We are better off defining things for what they actually are instead of how we expect them to be used.
 
 ### Value categories in ugly detail
 
@@ -326,7 +313,7 @@ post-increment, post-decrement (`a++`, `a--`)
 
 function member access of object (`a.f`, `p->f`, `a.*pf`, `p->*pf`)
  - a prvalue. these are particularly restricted, they can only be used as the left-hand argument of a function call and the compiler will throw if you try to use this expression for anything other than a function call. (you could argue this implies the existence of an additional value category if you wanted to make C++ developers lives even harder).
- - If the method is declared virtual and you access that method through a pointer or reference, the actual method invoked is determined at runtime. The compiler does not actually know the specific address of the method in that case. Why a non-pointer/non-reference member access is also treated as a prvalue is a mystery to me as their is no ambiguity to the function that will be called.
+ - If the method is declared virtual and you access that method through a pointer or reference, the actual method invoked is determined at runtime. The compiler does not actually know the specific address of the method in that case. Why a non-pointer/non-reference member access is also treated as a prvalue is a mystery to me as there is no ambiguity to the function that will be called.
 
 this
  - prvalue
