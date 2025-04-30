@@ -22,7 +22,7 @@ int main() {
 }
 ```
 
-Operator overloads can completely hijack the expected behavior of operators, and trivially-copiable classes are implicitly compiled with an operator overload that allows rvalues to appear on the right hand side of a copy assignment.
+Operator overloads can completely hijack the expected behavior of operators, and trivially-copiable classes are implicitly compiled with an operator overload that allows rvalues to appear on the left hand side of a copy assignment.
 
 <br>
 <br>
@@ -73,6 +73,35 @@ Some people call rvalues "temporary values", and unfortunately this sort of term
 <br>
 It is a common misconception that lvalues and rvalues indicate the lifetime of data; one might think that lvalues are expressions whose data has persistent lifetime and rvalues are expressions whose data has temporary lifetime. The third example shows why rvalues are not, in general, temporary. I regret to inform that some abuses of the language specification make it possible to create lvalues that refer to data that is no longer in scope. The lesson is clear: in general, do not associate value category with lifetime.
 </details>
+
+Here are some examples of the most common lvalues and rvalues:
+
+Common lvalues:
+ - names of variables (or functions, templates, data members)
+ - all assignment expressions (=, +=, *=, etc)
+   - The variable that is assigned to is the result of the expression, hence the result of the expression is locatable. 
+ - an expression using the "dereference" operator (*)
+   - Data acquired from an explicit address in memory is obviously locatable. 
+ - string literals
+   - The specification demands that object referenced by a string persists through the lifetime of the program (the terminology they use is "static storage"), so it is safe to make string literals locatable.
+ - _Key properties:_
+   - `&` is defined (unless the lvalue is the name of an overloaded function, in which case the location is ambiguous)
+   - can be used as left operand of assignment operators, but only if value is modifiable
+
+Common prvalues:
+ - any non-string literal (`7`, `3.3f`, etc)
+ - arithmetic expressions (`+`, `-`, `*`, `%`, etc)
+ - logical expressions (`&&`, `||`, etc)
+ - comparison expressions (`<`, `>`, `>=`, etc)
+ - enumerator
+   - enumerators are evaluated at compile time. the resultant machine code is indistinguishable from C++ code which uses an integer literal instead of an enum.
+ - lambda expression
+ -  _Key properties:_
+    - `&` throws
+    - cannot be used in left operand of any assignment
+    - can be used to initialize const lvalue reference (`const MyClass& myRef = <prvalue>;`)
+    - can be used to initialize rvalue reference (`MyClass&& myRef = <prvalue>;`)
+    - function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
 
 ## C++11
 
@@ -186,34 +215,7 @@ An xvalue is either 1) a latent expression with identity or 2) a materialization
 
 ### Value categories in ugly detail
 
-What follows is a precise categorization of all expressions told in a format extremely similar to cppreference's page about value categories. This is not meant to be read front-to-back; I would recommend using it as a reference. Please keep in mind that operator overloading can completely override anything describe here, in which case the implementation of the override (specifically its return value, see the discussion below on the value categories of function calls) will determine the value category of the overloaded operation. 
-
-Common lvalues:
- - names of variables (or functions, templates, data members)
- - all assignment expressions (=, +=, *=, etc)
-  - The variable that is assigned to is the result of the expression, hence the result of the expression is locatable. 
- - an expression using the "dereference" operator (*)
-  - Data acquired from an explicit address in memory is obviously locatable. 
- - string literals
-   - The specification demands that object referenced by a string persists through the lifetime of the program (the terminology they use is "static storage"), so it is safe to make string literals locatable.
- - _Key properties:_
-   - `&` is defined (please see an exception to this case in the discussion regarding functions below)
-   - can be used as left operand of assignment operators, but only if value is modifiable
-
-Common prvalues:
- - any non-string literal (`7`, `3.3f`, etc)
- - arithmetic expressions (`+`, `-`, `*`, `%`, etc)
- - logical expressions (`&&`, `||`, etc)
- - comparison expressions (`<`, `>`, `>=`, etc)
- - enumerator
-   - enumerators are evaluated at compile time. the resultant machine code is indistinguishable from C++ code which uses an integer literal instead of an enum.
- - lambda expression
- -  _Key properties:_
-    - `&` throws
-    - cannot be used in left operand of any assignment
-    - can be used to initialize const lvalue reference (`const MyClass& myRef = <prvalue>;`)
-    - can be used to initialize rvalue reference (`MyClass&& myRef = <prvalue>;`)
-    - function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
+What follows is a list of some additional expressions and their value category, as well as any explanation/justification if deemed neceesary. This is not meant to be read front-to-back; I would recommend using it as a reference. Please keep in mind that operator overloading can completely override anything describe here, in which case the implementation of the override (specifically its return value, see the discussion below on the value categories of function calls) will determine the value category of the overloaded operation. 
 
 Common xvalues:
  - a cast expression to rvalue reference to object type (`static_cast<MyClass&&>(myClassInstance)`)
