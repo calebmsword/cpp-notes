@@ -149,9 +149,20 @@ Things that were rvalues before C++11 that the standards committee recognizes as
 
 ## C++17
 
-C++17 added more wrinkles to the taxonomy. Before C++17, we could have a prvalue which represented a latent object (for example, a function call of a function whose return statement calls a class constructor). However, if a prvalue is of a class type, it no longer represents an object but instead acts as a "free coupon" for that result object. Hence there is no expensive object copy when a prvalue result is returned by a function (since C++ is a pass-by-value language), we simply "xerox the coupon" for the actual resultant object. The specification demands that, at some point, the object is **materialized** (the coupon is exchanged) into the actual result object, and which point the specification also demands that the prvalue is converted into an xvalue.
+C++17 added more wrinkles to the taxonomy. Before C++17, we could have a prvalue which represented a latent object (for example, a function call of a function whose return statement calls a class constructor). After C++17, it no longer represents an object but instead acts as a "free coupon" for that result object. Hence there is no expensive object copy when a prvalue result is returned by a function, we simply "xerox the coupon" for the actual resultant object. The specification demands that, at some point, the object is **materialized** (the coupon is exchanged) into the actual result object, and which point the specification also demands that the prvalue is converted into an xvalue. We will use the term **immaterial** to describe a prvalue which eventually materializes into an xvalue. 
 
-With this new feature, we can no longer bind prvalues to rvalue references. Instead, the prvalue is implicitly materialized into an xvalue and that xvalue is bound to the reference.
+Most prvalues are now immaterials that are eventually materialized into an xvalue. This allows the language to remove unnecessary copies of objects. With this new feature, we can no longer bind prvalues to rvalue references. Instead, the prvalue is implicitly materialized into an xvalue and that xvalue is bound to the reference. (Before C++17 it was said that all rvalues are movable. Now, only xvalues are movable.)
+
+There are situations where a prvalue does is not an immaterial. For example, if we assign a variable to some lvalue expression:
+
+```c++
+int() {
+  int b = 7;
+  int a = b;  // lvalue "b" is assigned to "a"
+}
+```
+
+The language implicitly converts the lvalue to an prvalue in a process known as **lvalue-to-rvalue** conversion. (This is not behavior new to C++17; the language has always behaved in this way.) It should be understood that there are [many other situations](https://en.cppreference.com/w/cpp/language/implicit_conversion#Lvalue-to-rvalue_conversion) where lvalue-to-rvalue conversions occur. The vast majority of lvalue-to-rvalue conversions do not create immaterial prvalues--they behave exactly like C++11 prvalues.  
 
 ## Summary
 
@@ -161,10 +172,11 @@ In short:
  - rvalues are **latent**--their address is only made available through assignment to a reference which allows indirect access to the address of the value
  - changes to the C++11 and C++17 do not change these facts, and only serve to introduce two specific types of rvalues (prvalues and xvalues)
  - after C++11,
-   - xvalues are latent objects with identity,
-   - prvalues are latent object without identity, and
-   - xvalues and prvalues are specific types of rvalues.
- - after C++17, xvalues also represent materializations of prvalue objects.
+   - xvalues are latent expressions with identity, and
+   - prvalues are latent expressions without identity 
+ - after C++17.
+   - prvalues not created from lvalue-to-rvalue conversions are immaterial representations of result objects, and
+   - xvalues can now also represent materializations of immaterial prvalues.
 
 ### An aside on the xvalue terminology
 
