@@ -144,10 +144,9 @@ The term "xvalue" was originally introduced without any meaning. I prefer to thi
 <details>
 <summary>Note</summary>
 <br>
-Things that were rvalues before C++11 that the standards committee recognizes as xvalues are:
-<br>
+<p>Things that were rvalues before C++11 that the standards committee recognizes as xvalues are:</p>
 <ol>
-  <li><b>Non-static, non-enumerator, non-function member access of an rvalue class or struct</b>. Static data members are still treated as locatable since static members are not associated with the lifetime of a class/struct instance.</li>
+  <li><b>Non-static, non-enumerator, non-function member access of an rvalue</b>. Static data members are still treated as locatable since static members are not associated with the lifetime of a class/struct instance.</li>
   <li><b>Array subscripting of an rvalue array</b>.</li>
 </ol>
  
