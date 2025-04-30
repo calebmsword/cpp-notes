@@ -88,7 +88,7 @@ Common lvalues:
    - `&` is defined (unless the lvalue is the name of an overloaded function, in which case the location is ambiguous)
    - can be used as left operand of assignment operators, but only if value is modifiable
 
-Common prvalues:
+Common rvalues:
  - any non-string literal (`7`, `3.3f`, etc)
  - arithmetic expressions (`+`, `-`, `*`, `%`, etc)
  - logical expressions (`&&`, `||`, etc)
