@@ -4,7 +4,7 @@ Any expression in C++ can fall into one of a small number of categories called *
 <summary>Note</summary>
 <br>
 
-The names "lvalue" and "rvalue" are historical artifacts. The esotric language [CPL](http://www.math.bas.bg/~bantchev/place/cpl/features.pdf) (The Cambridge Programming Language) allowed expressions to be evaluated in "left-hand" mode, where the expression is on the left side of a value assignment, and any expression not evaluated in left-hand mode was evaluated in "right-hand" mode. C inherited this terminology with the concept of the lvalue. According to section A5 from the "The C Programming Language", 2nd Edition from Kernighan and Ritchie,
+The names "lvalue" and "rvalue" are historical artifacts. The esotric language [CPL](http://www.math.bas.bg/~bantchev/place/cpl/features.pdf) (The Combined Programming Language) allowed expressions to be evaluated in "left-hand" mode, where the expression is on the left side of a value assignment, and any expression not evaluated in left-hand mode was evaluated in "right-hand" mode. C inherited this terminology with the concept of the lvalue. According to section A5 from the "The C Programming Language", 2nd Edition from Kernighan and Ritchie,
 
 > An <i>object</i> is a named region of storage; and <i>lvalue</i> is an expression referring to an object. An obvious example of an lvalue expression is an identifier with suitable type and storage class. There are operators that yield lavalues: for example, if `E` is an expression of pointer type, then `*E` is an lvalue expression referring to the object to which `E` points. The name "lvalue" comes from the assignment expression `E1 = E2` in which the left operation `E1` must be an lvalue expression.
 
