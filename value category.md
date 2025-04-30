@@ -160,7 +160,7 @@ C++17 added more wrinkles to the taxonomy. Before C++17, we could have a prvalue
 
 Most prvalues are now immaterials that are eventually materialized into an xvalue. This allows the language to remove unnecessary copies of objects. With this new feature, we can no longer bind prvalues to rvalue references. Instead, the prvalue is implicitly materialized into an xvalue and that xvalue is bound to the reference. (Before C++17 it was said that all rvalues are movable. Now, only xvalues are movable.)
 
-There are situations where a prvalue does is not an immaterial. For example, if we assign a variable to some lvalue expression:
+There are situations where a prvalue is not an immaterial. For example, if we assign a variable to some lvalue expression:
 
 ```c++
 int() {
