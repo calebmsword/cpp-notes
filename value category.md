@@ -229,7 +229,7 @@ Most prvalues are now immaterials that are eventually materialized into an xvalu
 
 In short:
  - lvalues are either
-   - **locatables**: their address is guaranteed to be made immediately available through the `&` operator'
+   - **locatables**: their address is guaranteed to be made immediately available through the `&` operator
    - names of functions or static methods
  - rvalues are **latent**: their address is not immediately available; they cannot be provided to the `&` operator
  - changes to the C++11 and C++17 do not change these facts, and only serve to introduce two specific types of rvalues (prvalues and xvalues)
