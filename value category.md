@@ -93,9 +93,7 @@ Common rvalues:
  - arithmetic expressions (`+`, `-`, `*`, `%`, etc)
  - logical expressions (`&&`, `||`, etc)
  - comparison expressions (`<`, `>`, `>=`, etc)
- - enumerator
-   - enumerators are evaluated at compile time. the resultant machine code is indistinguishable from C++ code which uses an integer literal instead of an enum.
- - lambda expression
+ - function calls of any function that does not return an lvalue reference
  -  _Key properties:_
     - `&` throws
     - cannot be used in left operand of any assignment
@@ -109,9 +107,9 @@ This definition has one unfortunate edge case. Names of functions are considered
  - Function member access of static functions (`my_instance.static_method`) the result is also considered an lvalue.
  - But non-static function member access is considered an *rvalue* (`my_instance.method_name`).
 
-The names of functions are, in general, potentially ambiguous because overloading is always possible. Yet non-static member functions are treated as a special case. Perhaps the difference is that non-static function member access are sometimes *resolved at runtime* if the method is declared virtual. Whatever the reason, I would have preferred that function names were always rvalues, but we are stuck with the decision that was made.
+The names of functions are, in general, potentially ambiguous because overloading is always possible. Yet non-static member functions are the only function-like expression that is an rvalue. (Perhaps the difference is that non-static function member access are sometimes *resolved at runtime* if the method is declared virtual.) Whatever the reason, I would have preferred that all function names and method names were rvalues. Alas, we are stuck with the decision that the C++ language designers made.
 
-Evidently the definition of lvalues provided is not quite correct. It is better define lvalues as 1) locatables or 2) names of functions or static methods.
+Evidently, the definition of lvalues provided earlier is incomplete. It is better define lvalues as 1) locatables or 2) names of functions or static methods.
 
 ## C++11
 
@@ -148,25 +146,16 @@ In C++11, the standards committee wanted to categorize expressions whose evaluat
    - This is because the address of an object is immediately available to the programmer if they use the `&` operator of any lvalue, and we can consider the address of an object as its identity.
    - Unfortunately, this means that function names and static methods are said to have identity even though function names can be ambiguous (see the previous section).
 
-The C++ standards committee recognized the existence of latent expressions with identity when they introduced the *rvalue reference cast* introduced in C++11. An rvalue reference of object type results in latent data (the language specification does not allow this expression to be provided to `&`) but since it is a reference its value *is* the identity of that object. The C++ standards committee felt this expression was best represented by a third value category and the pre-existing value category taxonomy was salvaged by changing the meaning of the word "rvalue":
+The C++ standards committee recognized the existence of latent expressions with identity when they introduced the *rvalue reference cast* introduced in C++11. An rvalue reference of object type results in latent data (the language specification does not allow this expression to be provided to `&`) but since it is a reference its value *is* the identity of that object. The C++ standards committee felt that latents with identity should be represented by a third value category. This new value category was integrated into the old value category system by changing the meaning of the word "rvalue":
  - nearly all of what we used to call rvalues are now called **prvalues** ("pure rvalues"),
  - what we used to call lvalues are still called lvalues,
- - an __rvalue reference cast expression of an object__ is of a new value category called **xvalue**,
-   - __a function which returns an rvalue reference of an object__ is also considered an xvalue,
+ - latent objects with identity are now in a new category called **xvalue**,
  - and rvalue is now an umbrella term: __xvalues and prvalues are specific types of rvalues__.
 
 <details>
 <summary>Note</summary>
 <br>
 There also exists the less useful umbrella term <b>glvalue</b>, short for "general lvalue". xvalues and lvalues are specific types of glvalues. An xvalue is both a glvalue and an rvalue.
-<br>
-<br>
-</details>
-
-<details>
-<summary>Note</summary>
-<br>
-The only way to create an rvalue reference cast expression of non-object type is if you cast a function to an rvalue reference. rvalue references of functions are treated as lvalues. Most situations where a reference to a function could be used are best solved with lambdas so this is not a commonly used language feature.
 <br>
 <br>
 </details>
@@ -181,17 +170,51 @@ The C++11 standard defines rvalues as expressions which are movable. This is a c
 <br>
 </details>
 
-The term "xvalue" was originally introduced without any meaning. I prefer to think of xvalue as being short for "cross value" since an xvalue contains a cross of a characteristic usually associated with lvalues (identity) and the characteristic of pre-C++11 rvalues (latency). There is a small class of expressions that were rvalues before C++11 that are now also xvalues, but the rvalue cast expression and the function which returns an rvalue reference are by far the most important and common examples encountered in practice.
+The term "xvalue" was originally introduced without any meaning. I prefer to think of xvalue as being short for "cross value" since an xvalue contains a cross of a characteristic usually associated with lvalues (identity) and the characteristic of pre-C++11 rvalues (latency). There are only a few expressions that were rvalues before C++11 that are now also xvalues; in general there are not many types of xvalues:
+
+  1) <ins>rvalue reference casts of objects</ins>.
+  2) <ins>Functions that return rvalue references of objects</ins>.
+  3) <ins>Non-static, non-enumerator, non-function member access of an rvalue</ins>. Static data members are still treated as locatable since static members are not associated with the lifetime of a class/struct instance.
+  4) <ins>Array subscripting of an rvalue array</ins>.
+
+```c++
+#include <iostream>
+
+class A {
+public:
+  int b = 3;
+};
+
+A get_A() {
+  return A();
+};
+
+A&& get_A_ref() {
+  return A(); 
+}
+
+static int arr[10];
+
+int* get_array() {
+  return arr;
+}
+
+int main() {
+  A a;
+  
+  A&& aref1 = static_cast<A&&>(a);      // xvalue of type 1)
+  A&& aref2 = get_A_ref();              // xvalue of type 2)
+  std::cout << get_A().b << "\n";       // xvalue of type 3)
+  std::cout << get_array()[0] << "\n";  // xvalue of type 4)
+}
+```
+
+The rvalue cast expression and the function which returns an rvalue reference are by far the most common xvalues encountered in practice.
 
 <details>
 <summary>Note</summary>
 <br>
-<p>Things that were rvalues before C++11 that the standards committee recognizes as xvalues are:</p>
-<ol>
-  <li><b>Non-static, non-enumerator, non-function member access of an rvalue</b>. Static data members are still treated as locatable since static members are not associated with the lifetime of a class/struct instance.</li>
-  <li><b>Array subscripting of an rvalue array</b>.</li>
-</ol>
- 
+The only way to create an rvalue reference cast expression of non-object type is if you cast a function to an rvalue reference. rvalue references of functions are treated as lvalues. Most situations where a reference to a function could be used are best solved with lambdas so this is not a commonly-used language feature.
 <br>
 <br>
 </details>
@@ -205,8 +228,9 @@ Most prvalues are now immaterials that are eventually materialized into an xvalu
 ## Summary
 
 In short:
- - lvalues are **locatable**: their address is made immediately available through the `&` operator
- - as an exception to the previous, names of functions and static methods are also considered lvalues
+ - lvalues are either
+   - **locatables**: their address is guaranteed to be made immediately available through the `&` operator'
+   - names of functions or static methods
  - rvalues are **latent**: their address is not immediately available; they cannot be provided to the `&` operator
  - changes to the C++11 and C++17 do not change these facts, and only serve to introduce two specific types of rvalues (prvalues and xvalues)
  - after C++11,
