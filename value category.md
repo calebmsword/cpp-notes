@@ -183,6 +183,7 @@ The term "xvalue" was originally introduced without any meaning. I prefer to thi
 class A {
 public:
   int b = 3;
+  static const int c = 4;
 };
 
 A get_A() {
@@ -205,6 +206,7 @@ int main() {
   A&& aref1 = static_cast<A&&>(a);      // xvalue of type 1)
   A&& aref2 = get_A_ref();              // xvalue of type 2)
   std::cout << get_A().b << "\n";       // xvalue of type 3)
+  std::cout << get_A().c << "\n";       // NOT an xvalue, static fields are lvalues!
   std::cout << get_array()[0] << "\n";  // xvalue of type 4)
 }
 ```
