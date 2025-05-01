@@ -230,22 +230,7 @@ An xvalue is either 1) a latent expression with identity or 2) a materialization
 
 ### Value categories in ugly detail
 
-What follows is a list of some additional expressions and their value category, as well as any explanation/justification if deemed neceesary. This is not meant to be read front-to-back; I would recommend using it as a reference. Please keep in mind that operator overloading can completely override anything describe here, in which case the implementation of the override (specifically its return value, see the discussion below on the value categories of function calls) will determine the value category of the overloaded operation. 
-
-Common xvalues:
- - a cast expression to rvalue reference to object type (`static_cast<MyClass&&>(myClassInstance)`)
- - or a function that returns an rvalue reference to object type (`std::move(myClassInstance)`)
- - _Key properties:_
-   - `&` throws
-   - cannot be used in left operand of any assignment
-   - can be used to initialize const non-rvalue reference (`const MyClass& myRef = <xvalue>;`)
-   - can be used to initialize rvalue reference (`MyClass&& myRef = <xvalue>;`)
-   - function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
-
-### Additional cases: 
-
-function names:
- - A function name that is not a class method is always an lvalue. However, if a function is overloaded, giving the function name to `&` is ambiguous so the compiler will throw. As far as I am aware this is the only case where an lvalue cannot be given to the `&` operator.  
+What follows is a list of some additional expressions and their value category, as well as any explanation/justification if deemed neceesary. This is not meant to be read front-to-back; I would recommend using it as a reference. Please keep in mind that operator overloading can completely override anything describe here, in which case the implementation of the override (specifically its return value, see the discussion below on the value categories of function calls) will determine the value category of the overloaded operation.
 
 function calls:
  - if the return type is not a reference, then prvalue.
