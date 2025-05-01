@@ -200,6 +200,8 @@ The term "xvalue" was originally introduced without any meaning. I prefer to thi
 
 C++17 added more wrinkles to the taxonomy. Before C++17, we could have a prvalue which represented a latent object (for example, a function call of a function whose return statement calls a class constructor). After C++17, it no longer represents an object but instead acts as a "free coupon" for that result object. Hence there is no expensive object copy when a prvalue result is returned by a function, we simply "xerox the coupon" for the actual resultant object. The specification demands that, at some point, the object is **materialized** (the coupon is exchanged) into the actual result object, and which point the specification also demands that the prvalue is converted into an xvalue. We will use the term **immaterial** to describe a prvalue which eventually materializes into an xvalue. 
 
+Most prvalues are now immaterials that are eventually materialized into an xvalue. This allows the language to remove unnecessary copies of objects. With this new feature, we can no longer bind prvalues to rvalue references. Instead, the prvalue is implicitly materialized into an xvalue and that xvalue is bound to the reference. (Before C++17 it was said that all rvalues are movable. Now, only xvalues are movable.)
+
 ## Summary
 
 In short:
