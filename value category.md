@@ -109,9 +109,9 @@ This definition has one unfortunate edge case. Names of functions are considered
  - Function member access of static functions (`my_instance.static_method`) the result is also considered an lvalue.
  - But non-static function member access is considered an *rvalue* (`my_instance.method_name`).
 
-The names of functions are, in general, potentially ambiguous because overloading is always possible. Perhaps the difference is that non-static function member access _can_ be resolved at runtime if the method is declared virtual while the other function names are guaranteed to be resolved at compile time. Personally, I would have preferred that function names were rvalues, always, but we are stuck with the decision that was made.
+The names of functions are, in general, potentially ambiguous because overloading is always possible. Yet non-static member functions are treated as a special case. Perhaps the difference is that non-static function member access are sometimes *resolved at runtime* if the method is declared virtual while the other function names are guaranteed to be resolved at compile time. Whatever the reason, I would have preferred that function names were always rvalues, but we are stuck with the decision that was made.
 
-Evidently the definition of lvalues I provided is not quite correct. It would be more accurate to say that lvalues are 1) locatables or 2) names of functions or static methods.
+Evidently the definition of lvalues provided is not quite correct. It is better define lvalues as 1) locatables or 2) names of functions or static methods.
 
 ## C++11
 
@@ -146,7 +146,7 @@ In C++11, the standards committee wanted to categorize expressions whose evaluat
    - **Non-enumerator, non-static-function data member access**. Enumerators are evaluated at compile time so is no address associated with an enumerator at runtime, and as such enumerators are not treated as something with identity. The existence of virtual functions means that it can be ambigious what function is being referred to by function member access, so the language does not consider these to carry identity either. In all other cases, member access functions a name to a specific object in memory and as such the standard treats the operation as one that "determines identity".
  - **lvalues**:
    - This is because the address of an object is immediately available to the programmer if they use the `&` operator of any lvalue, and we can consider the address of an object as its identity.
-   - Unfortunately, this means that function names said to have identity even though function names can be ambiguous (see the previous section).
+   - Unfortunately, this means that function names and static methods are said to have identity even though function names can be ambiguous (see the previous section).
 
 The C++ standards committee recognized the existence of latent expressions with identity when they introduced the *rvalue reference cast* introduced in C++11. An rvalue reference of object type results in latent data (the language specification does not allow this expression to be provided to `&`) but since it is a reference its value *is* the identity of that object. The C++ standards committee felt this expression was best represented by a third value category and the pre-existing value category taxonomy was salvaged by changing the meaning of the word "rvalue":
  - nearly all of what we used to call rvalues are now called **prvalues** ("pure rvalues"),
