@@ -109,7 +109,7 @@ This definition has one unfortunate edge case. Names of functions are considered
  - Function member access of static functions (`my_instance.static_method`) the result is also considered an lvalue.
  - But non-static function member access is considered an *rvalue* (`my_instance.method_name`).
 
-The names of functions are, in general, potentially ambiguous because overloading is always possible. Yet non-static member functions are treated as a special case. Perhaps the difference is that non-static function member access are sometimes *resolved at runtime* if the method is declared virtual while the other function names are guaranteed to be resolved at compile time. Whatever the reason, I would have preferred that function names were always rvalues, but we are stuck with the decision that was made.
+The names of functions are, in general, potentially ambiguous because overloading is always possible. Yet non-static member functions are treated as a special case. Perhaps the difference is that non-static function member access are sometimes *resolved at runtime* if the method is declared virtual. Whatever the reason, I would have preferred that function names were always rvalues, but we are stuck with the decision that was made.
 
 Evidently the definition of lvalues provided is not quite correct. It is better define lvalues as 1) locatables or 2) names of functions or static methods.
 
