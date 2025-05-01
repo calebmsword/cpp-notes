@@ -22,7 +22,7 @@ int main() {
 }
 ```
 
-(rivially-copiable classes are implicitly compiled with an operator overload that allows rvalues to appear on the left hand side of a copy assignment.)
+(Trivially-copiable classes are implicitly compiled with an operator overload that allows rvalues to appear on the left hand side of a copy assignment.)
 
 <br>
 <br>
