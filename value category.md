@@ -8,7 +8,7 @@ The names "lvalue" and "rvalue" are historical artifacts. The esoteric language 
 
 > An <i>object</i> is a named region of storage; and <i>lvalue</i> is an expression referring to an object. An obvious example of an lvalue expression is an identifier with suitable type and storage class. There are operators that yield lavalues: for example, if `E` is an expression of pointer type, then `*E` is an lvalue expression referring to the object to which `E` points. The name "lvalue" comes from the assignment expression `E1 = E2` in which the left operation `E1` must be an lvalue expression.
 
-Since C++ is (almost) a superset of C, it also inherits the concept of an lvalue and also introduces the term "rvalue" for anything that isn't an lvalue, but C++'s additional complexity results in situations where an lvalue cannot appear on the left hand side of an assignment or where an rvalue appears on the left hand side of an assignment. To see why I discourage you from thinking of lvalues and rvalues as what can be allowed to appear on either side of an `=` operation, consider the following snippet:
+Since C++ is (almost) a superset of C, it also inherits the concept of an lvalue and also introduces the term "rvalue" for anything that isn't an lvalue, but C++'s additional complexity results in situations where an lvalue cannot appear on the left hand side of an assignment and operator overloading can allow an rvalue to appear on the left hand side of an assignment. To see why I discourage you from thinking of lvalues and rvalues as what can be allowed to appear on either side of an `=` operation, consider the following snippet:
 
 ```c++
 #include <iostream>
@@ -22,7 +22,7 @@ int main() {
 }
 ```
 
-(Operator overloads can completely hijack the expected behavior of operators, and trivially-copiable classes are implicitly compiled with an operator overload that allows rvalues to appear on the left hand side of a copy assignment.)
+(rivially-copiable classes are implicitly compiled with an operator overload that allows rvalues to appear on the left hand side of a copy assignment.)
 
 <br>
 <br>
