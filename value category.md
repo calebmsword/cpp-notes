@@ -72,6 +72,8 @@ Some people call rvalues "temporary values", and unfortunately this sort of term
 <summary>Note</summary>
 <br>
 It is a common misconception that lvalues and rvalues indicate the lifetime of data; one might think that lvalues are expressions whose data has persistent lifetime and rvalues are expressions whose data has temporary lifetime. The third example shows why rvalues are not, in general, temporary. I regret to inform that some abuses of the language specification make it possible to create lvalues that refer to data that is no longer in scope. The lesson is clear: in general, do not associate value category with lifetime.
+<br>
+<br>
 </details>
 
 Here are some examples of the most common lvalues and rvalues: (it should be understood that these apply to default, built-in behaviors of C++ operators. Operator overloading can completely override any of the following facts.)
@@ -101,15 +103,15 @@ Common rvalues:
     - can be used to initialize rvalue reference (`MyClass&& myRef = <prvalue>;`)
     - function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
 
-This definition has one unfortunate edge case. Names of functions are considered lvalues, yet if you overload a function, passing that function to `&` results in a compilation failure since it is ambiguous which function you should receive the address of. The value categorization of methods is also perplexing:
+The definition of lvalues as locatables has one unfortunate edge case. Names of functions are considered lvalues, yet if you overload a function, passing that function to `&` results in a compilation failure since it is ambiguous which function you should receive the address of. The value categorization of methods is also surprising:
 
  - If we access the name of a method with an qualified-id (`MyClass::method_name`) the result is considered an lvalue.
  - Function member access of static functions (`my_instance.static_method`) the result is also considered an lvalue.
  - But non-static function member access is considered an *rvalue* (`my_instance.method_name`).
 
-The names of functions are, in general, potentially ambiguous because overloading is always possible. Yet non-static member functions are the only function-like expression that is an rvalue. (Perhaps the difference is that non-static function member access are sometimes *resolved at runtime* if the method is declared virtual.) Whatever the reason, I would have preferred that all function names and method names were rvalues. Alas, we are stuck with the decision that the C++ language designers made.
+The names of functions are, in general, potentially ambiguous because overloading is always possible. Yet non-static member functions are the only function-like expression that is an rvalue. (Perhaps the difference is that non-static function member access are sometimes *resolved at runtime* if the method is declared virtual.) Whatever the reason, we are stuck with the decision from the C++ language designers that functions and static methods are lvalues.
 
-Evidently, the definition of lvalues provided earlier is incomplete. It is better define lvalues as 1) locatables or 2) names of functions or static methods.
+Evidently, the definition of lvalues provided earlier is incomplete. It is better define lvalues as 1) locatables or 2) names of functions or static method member access.
 
 ## C++11
 
@@ -231,13 +233,14 @@ Most prvalues are now immaterials that are eventually materialized into an xvalu
 
 In short:
  - lvalues are either
-   - **locatables**: their address is guaranteed to be made immediately available through the `&` operator
-   - names of functions or static methods
+   - **locatables**: expressions whose address is guaranteed to be made immediately available through the `&` operator
+   - names of functions or static method member access
  - rvalues are **latent**: their address is not immediately available; they cannot be provided to the `&` operator
- - changes to the C++11 and C++17 do not change these facts, and only serve to introduce two specific types of rvalues (prvalues and xvalues)
+ - changes to C++ from the C++11 and C++17 standards do not change these facts, and instead introduce two specific types of rvalues (prvalues and xvalues)
  - after C++11,
+   - all rvalues are either an xvalue or prvalue,
    - xvalues are latent expressions with identity, and
-   - prvalues are latent expressions without identity 
+   - prvalues are latent expressions without identity.
  - after C++17,
    - most prvalues are immaterial representations of result objects, and
    - xvalues can now also represent materializations of immaterial prvalues.
@@ -289,44 +292,11 @@ post-increment, post-decrement (`a++`, `a--`)
 `a.m`
  -non-function, non-enumerator member
   - an lvalue if a is an lvalue, an xvalue if a is an rvalue
-  ```
-  class A {
-    public:
-      int b;
-  };
-
-  A foo() {
-    return A();
-  }
-
-  int main() {
-    A a;
-    
-    a.b;     // lvalue
-    foo().b  // xvalue
-  }
-  ```
-
    - Classes are a generalization of C structs, and one non-enumerator data member of a struct can be accessed from another using pointer arithmetic (yes, this means there are situations where you can access private fields of an objects. Very unfortunate language design.) Hence data member access should be treated in the same manner as array access. See my disucssion about the subscript operator for more information.
 
 
  -non-function, enumerator member
   - prvalue
-  ```
-  class A {
-    public:
-      enum {
-        b = 1
-      };
-  };
-
-  int main() {
-    A a;
-    
-    a.b;     // prvalue
-  }
-  ```
-`
     - enumerators are evaluated at compile time. as such there is no "enum object" created at runtime whose address is looked up when an enum is used in your program. the value of that enum is hard-coded into the machine instructions for your program, and as such the resulting program is indistinguishable from one in which you used a integer literal (if the enum is of integer type) instead of the enum. this is why enums are not lvalues.
 
 `p->m`
@@ -343,9 +313,9 @@ function member access of object (`a.f`, `p->f`, `a.*pf`, `p->*pf`)
  - a prvalue. these are particularly restricted, they can only be used as the left-hand argument of a function call and the compiler will throw if you try to use this expression for anything other than a function call. (you could argue this implies the existence of an additional value category if you wanted to make C++ developers lives even harder).
  - If the method is declared virtual and you access that method through a pointer or reference, the actual method invoked is determined at runtime. The compiler does not actually know the specific address of the method in that case. Why a non-pointer/non-reference member access is also treated as a prvalue is a mystery to me as there is no ambiguity to the function that will be called.
 
-this
+`this`
  - prvalue
- - This is perplexing to me, I do not understand this choice from the language specification. I will update these notes if I ever find a satisfying justification for this decision.
+ - I do not understand this choice from the language specification. I will update these notes if I ever find a satisfying justification for this decision.
 
 template parameters
  - non-type template parameter of lvalue reference type
@@ -362,7 +332,6 @@ specialization of a concept
 cast expressions
  - xvalue if casted to rvalue reference of object type (by definition)
  - lvalue if casted to lvalue reference type
-   - (It feels arbitrary that an lvalue reference cast is locatable while an rvalue reference cast is latent. However, if we had an overloaded function with a lvalue reference parameter and an rvalue reference parameter, it would be immensely confusing if an lvalue reference cast caused an rvalue reference overload to be called.)
  - prvalue otherwise
 
 void expressions
