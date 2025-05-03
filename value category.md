@@ -45,7 +45,7 @@ Most of the time, there is a clear reason the language makes certain expressions
 int x = 3;
 x; // this is an lvalue
 ```
- - the data stored in `x` is accessible to us with a named variable. typically, names of things represent locatable data in C++. Since the data is stored in a variable, the line of code after the expression `x` still has access to the location in memory which stores `x`'s data. This is why `&` is defined for `x`, as it is safe to reveal this address to the programmer. That location in memory will have the data in `x` as long as `x` remains in scope.
+ - the data stored in `x` is accessible to us with a named variable. Typically, names of things represent locatable data in C++. Since the data is stored in a variable, the line of code after the expression `x` still has access to the location in memory which stores `x`'s data. This is why `&` is defined for `x`, as it is safe to reveal this address to the programmer. That location in memory will have the data in `x` as long as `x` remains in scope.
 
 ```c++
 int a;
@@ -101,8 +101,8 @@ Common rvalues:
  -  _Key properties:_
     - `&` throws
     - cannot be used in left operand of any assignment
-    - can be used to initialize const lvalue reference (`const MyClass& myRef = <prvalue>;`)
-    - can be used to initialize rvalue reference (`MyClass&& myRef = <prvalue>;`)
+    - can be used to initialize const lvalue reference (`const MyClass& myRef = <rvalue>;`)
+    - can be used to initialize rvalue reference (`MyClass&& myRef = <rvalue>;`)
     - function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
 
 The definition of lvalues as locatables has one unfortunate edge case. Names of functions are considered lvalues, yet if you overload a function, passing that function to `&` results in a compilation failure since it is ambiguous which function you should receive the address of. The value categorization of methods is also surprising:
