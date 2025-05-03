@@ -1,3 +1,5 @@
+# Part I: A Historical Overview
+
 Any expression in C++ can fall into one of a small number of categories called **value categories** of which the two most important are **rvalues** and **lvalues**. All expressions are either an rvalue or lvalue. This terminology suggests that there may be some significant correlation between leftness/rightness and lvalue/rvalue. The only meaningful correlation is that lvalues and rvalues are opposites; an expression cannot be both an rvalue and an lvalue at the same time. Trying to find any further correlations only leads to confusion.
 
 <details>
@@ -272,7 +274,7 @@ I will mention that the standard says that xvalues are "eXpiring values", termin
    
 An xvalue is either 1) a latent expression with identity or 2) a materialization of a prvalue. There is no guarantee that an xvalue refers to something expiring/temporary. We are better off defining things for what they actually are instead of how we expect them to be used.
 
-### Value categories in ugly detail
+# Part 2: A Boring List of Facts
 
 What follows is a list of some additional expressions and their value category, as well as any explanation/justification if deemed neceesary. This is not meant to be read front-to-back; I would recommend using it as a reference. Please keep in mind that operator overloading can completely override anything describe here, in which case the implementation of the override (specifically its return value, see the discussion below on the value categories of function calls) will determine the value category of the overloaded operation.
 
