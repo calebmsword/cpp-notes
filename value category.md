@@ -264,7 +264,7 @@ In short:
 
 The terms **locatable**, **latent**, and **immaterial** are non-standard terminologies I invented for this write-up. Do not expect other developers to know what they mean. (But please feel free to spread their usage.)
 
-### An aside on the xvalue terminology
+## An aside on the xvalue terminology
 
 I will mention that the standard says that xvalues are "eXpiring values", terminology I strongly dislike. Since most practical usage of xvalues is to call a move constructor or move assignment, the value represented by the xvalue is meant to be "moved from" and eventually discarded, which I suppose what this terminology is supposed to mean. This hinges on the programmer adhering to convention, however:
 
@@ -307,21 +307,23 @@ post-increment, post-decrement (`a++`, `a--`)
  - a prvalue (it is temporary since the result of the expression is different from the value of the variable in subsequent lines of code)
 
 `a.m`
- -non-function, non-enumerator member
-  - an lvalue if a is an lvalue, an xvalue if a is an rvalue
-   - Classes are a generalization of C structs, and one non-enumerator data member of a struct can be accessed from another using pointer arithmetic (yes, this means there are situations where you can access private fields of an objects. Very unfortunate language design.) Hence data member access should be treated in the same manner as array access. See my disucssion about the subscript operator for more information.
+
+ - non-function, non-enumerator member
+   - an lvalue if a is an lvalue, an xvalue if a is an rvalue
+     - Classes are a generalization of C structs, and one non-enumerator data member of a struct can be accessed from another using pointer arithmetic (yes, this means there are situations where you can access private fields of an objects. Very unfortunate language design.) Hence data member access should be treated in the same manner as array access. See my disucssion about the subscript operator for more information.
 
 
- -non-function, enumerator member
-  - prvalue
-    - enumerators are evaluated at compile time. as such there is no "enum object" created at runtime whose address is looked up when an enum is used in your program. the value of that enum is hard-coded into the machine instructions for your program, and as such the resulting program is indistinguishable from one in which you used a integer literal (if the enum is of integer type) instead of the enum. this is why enums are not lvalues.
+ - non-function, enumerator member
+   - prvalue
+     - enumerators are evaluated at compile time. as such there is no "enum object" created at runtime whose address is looked up when an enum is used in your program. the value of that enum is hard-coded into the machine instructions for your program, and as such the resulting program is indistinguishable from one in which you used a integer literal (if the enum is of integer type) instead of the enum. this is why enums are not lvalues.
 
 `p->m`
- -non-function, non-enumerator member
-  - an lvalue
+ 
+  - non-function, non-enumerator member
+    - an lvalue
 
- -non-function, enumerator member
-  - a prvalue
+  - non-function, enumerator member
+    - a prvalue
 
 `a.*p`, `a->*p`
  - an lvalue if a is an lvalue, an xvalue if a is an rvalue
