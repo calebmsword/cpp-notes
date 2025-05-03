@@ -154,29 +154,11 @@ The C++ standards committee recognized the existence of latent expressions with 
  - latent objects with identity are now in a new category called **xvalue**,
  - and rvalue is now an umbrella term: __xvalues and prvalues are specific types of rvalues__.
 
-<details>
-<summary>Note</summary>
-<br>
-There also exists the less useful umbrella term <b>glvalue</b>, short for "general lvalue". xvalues and lvalues are specific types of glvalues. An xvalue is both a glvalue and an rvalue.
-<br>
-<br>
-</details>
-
-As a result of this change, everything that was an lvalue before was still an lvalue and everything that used to be an rvalue was still an rvalue, but now there two specific and mutually-exclusive types of rvalues. The xvalue is a latent object with identity. prvalues are latent objects without identity.
-
-<details>
-<summary>Note</summary>
-<br>
-The C++11 standard defines rvalues as expressions which are movable. This is a circular definition; see the overview of move semantics at the beginning of this section. I believe is better to continue to define rvalues as latent expressions even after the C++11 standard.
-<br>
-<br>
-</details>
-
-The term "xvalue" was originally introduced without any meaning. I prefer to think of xvalue as being short for "cross value" since an xvalue contains a cross of a characteristic usually associated with lvalues (identity) and the characteristic of pre-C++11 rvalues (latency). There are only a few expressions that were rvalues before C++11 that are now also xvalues; in general there are not many types of xvalues:
+There are only a few types of expressions that are xvalues after C++11. You could reason what they are by thinking of expressions with identity that could be rvalues, but here is the list for convenience:
 
   1) <ins>rvalue reference casts of objects</ins>.
   2) <ins>Functions that return rvalue references of objects</ins>.
-  3) <ins>Non-static, non-enumerator, non-function member access of an rvalue</ins>. Static data members are still treated as locatable since static members are not associated with the lifetime of a class/struct instance.
+  3) <ins>Non-static, non-enumerator, non-function member access of an rvalue</ins>. (Static data members are still treated as locatable since static members are not associated with the lifetime of a class/struct instance.)
   4) <ins>Array subscripting of an rvalue array</ins>.
 
 ```c++
@@ -186,10 +168,9 @@ class A {
 public:
   int b = 3;
   static const int c = 4;
-};
-
-A get_A() {
-  return A();
+  enum {
+    d = 0
+  };
 };
 
 A&& get_A_ref() {
@@ -207,18 +188,52 @@ int main() {
   
   A&& aref1 = static_cast<A&&>(a);      // xvalue of type 1)
   A&& aref2 = get_A_ref();              // xvalue of type 2)
-  std::cout << get_A().b << "\n";       // xvalue of type 3)
-  std::cout << get_A().c << "\n";       // NOT an xvalue, static fields are lvalues!
+  std::cout << A().b << "\n";           // xvalue of type 3)
+  std::cout << A().c << "\n";           // NOT an xvalue, static fields are lvalues!
+  std::cout << A().d << "\n";           // NOT an xvalue, enumerator fields are prvalues!
   std::cout << get_array()[0] << "\n";  // xvalue of type 4)
 }
 ```
 
-The rvalue cast expression and the function which returns an rvalue reference are by far the most common xvalues encountered in practice.
+xvalues of type 2) are the most common type of xvalue. This is because of the standard library function `std::move`, a function which simply returns an rvalue reference bound to its argument. `std::move` is almost always used to perform moves.
 
 <details>
 <summary>Note</summary>
 <br>
-The only way to create an rvalue reference cast expression of non-object type is if you cast a function to an rvalue reference. rvalue references of functions are treated as lvalues. Most situations where a reference to a function could be used are best solved with lambdas so this is not a commonly-used language feature.
+The only way to create an rvalue reference cast expression of non-object type is if you cast a function to an rvalue reference. rvalue references of functions are treated as lvalues. (Most situations where a function reference is appropriate are better solved with lambdas so this is not a commonly-used language feature.)
+<br>
+<br>
+</details>
+
+<details>
+<summary>Note</summary>
+<br>
+There also exists the umbrella term <b>glvalue</b>, short for "general lvalue", which categories all expressions with identity. xvalues and lvalues are specific types of glvalues. An xvalue is both a glvalue and an rvalue.
+
+This term is not useful for everyday C++ programming but it appears frequently in the C++ standard.
+<br>
+<br>
+</details>
+
+The result of the C++11 revamp of value categories is that everything that was an lvalue before was still an lvalue and everything that used to be an rvalue was still an rvalue, but now there two specific and mutually-exclusive types of rvalues. The xvalue is a latent object with identity. prvalues are latent objects without identity.
+
+You might wonder what the term xvalue is supposed to mean. In a [2013 document](https://www.stroustrup.com/terminology.pdf) written by the creator of the C++ language it was admitted that "xvalue" originally had no meaning at all, and was just a word they made up for the new value category. I prefer to think of xvalue as being short for "cross value" since an xvalue contains a cross of a feature usually associated with lvalues (identity) and the feature of rvalues (they are latent).
+
+<details>
+<summary>Note</summary>
+<br>
+<p>To quote Bjarne Stroustrup's 2013 document on the xvalue terminology:</p>
+
+> "We really don’t have anything that guides us to a good name for those esoteric beasts. They are important to people working with the (draft) standard text, but are unlikely to become a household name. We didn’t find any real constraints on the naming to guide us, so we picked ‘x’ for the center, the unknown, the strange, the xpert only, or even x-rated."
+
+<br>
+<br>
+</details>
+
+<details>
+<summary>Note</summary>
+<br>
+The C++11 standard defines rvalues as expressions which are movable. This is a circular definition; see the overview of move semantics at the beginning of this section. I believe is better to continue to define rvalues as latent expressions even after the C++11 standard.
 <br>
 <br>
 </details>
@@ -397,3 +412,4 @@ rvalue (ie, properties shared between prvalues and xvalues)
  - Anders Schau Knatten's [talk](https://www.youtube.com/watch?v=hkyZ8L343cU) "lvalues, rvalues, glvalues, prvalues, xvalues, help!", while a talk I dislike overall, introduced the shocking edge case that a `std::string` can appear on the left hand side of an assignment operation which helped me learn about default copy assignment overload behavior.
  - "The C Programming Language" 2nd Edition by Kernighan and Ritchie, which I used to provide an "official" description of lvalues in C.
  - "The Main Features of CPL" by D. W. Barron, et al was helpful for discussing the history of the concept of an lvalue.
+ - Bjarne Stroustrup's [document](https://www.stroustrup.com/terminology.pdf) '"New" Value Terminology' is useful to see motivation for why value categories were made so much more complicated.
