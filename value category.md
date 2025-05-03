@@ -154,7 +154,7 @@ It so happens that it is possible for an rvalue to also have identity. The C++ s
  - latent objects with identity are now in a new category called **xvalue**,
  - and rvalue is now an umbrella term: __xvalues and prvalues are specific types of rvalues__.
 
-There are only a few types of expressions that are xvalues after C++11. You could reason what they are by thinking of expressions with identity that could be rvalues, but here is the list for convenience:
+There are only a few types of expressions that are xvalues after C++11:
 
   1) <ins>rvalue reference casts of objects</ins>.
   2) <ins>Functions that return rvalue references of objects</ins>.
