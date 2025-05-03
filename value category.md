@@ -43,7 +43,7 @@ Most of the time, there is a clear reason the language makes certain expressions
 int x = 3;
 x; // this is an lvalue
 ```
- - the data stored in `x` is accessible to us with a named variable. in general, names of things represent locatable data in C++. This includes names of objects, functions, etc. Since the data is stored in a variable, the line of code after the expression `x` still has access to the location in memory which stores `x`'s data. This is why `&` is defined for `x`, as it is safe to reveal this address to the programmer. That location in memory will have the data in `x` as long as `x` remains in scope.
+ - the data stored in `x` is accessible to us with a named variable. typically, names of things represent locatable data in C++. Since the data is stored in a variable, the line of code after the expression `x` still has access to the location in memory which stores `x`'s data. This is why `&` is defined for `x`, as it is safe to reveal this address to the programmer. That location in memory will have the data in `x` as long as `x` remains in scope.
 
 ```c++
 int a;
