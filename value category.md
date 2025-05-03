@@ -219,12 +219,12 @@ This term is not useful for everyday C++ programming but it appears frequently i
 
 The result of the C++11 revamp of value categories is that everything that was an lvalue before was still an lvalue and everything that used to be an rvalue was still an rvalue, but now there two specific and mutually-exclusive types of rvalues. The xvalue is a latent object with identity. prvalues are latent objects without identity.
 
-You might wonder what the term xvalue is supposed to mean. In a [2013 document](https://www.stroustrup.com/terminology.pdf) written by the creator of the C++ language it was admitted that "xvalue" originally had no meaning at all, and was just a word they made up for the new value category. I prefer to think of xvalue as being short for "cross value" since an xvalue contains a cross of a feature usually associated with lvalues (identity) and the feature of rvalues (they are latent).
+You might wonder what the term xvalue is supposed to mean. I prefer to think of xvalue as being short for "cross value" since an xvalue contains a cross of a feature usually associated with lvalues (identity) and the feature of rvalues (they are latent).
 
 <details>
 <summary>Note</summary>
 <br>
-<p>To quote Bjarne Stroustrup's 2013 document on the xvalue terminology:</p>
+<p>The term "xvalue" was understood by the C++ standards committee to be a vague and arbitrary name. To quote Bjarne Stroustrup's [2013 document](https://www.stroustrup.com/terminology.pdf) on the xvalue terminology:</p>
 
 > "We really don’t have anything that guides us to a good name for those esoteric beasts. They are important to people working with the (draft) standard text, but are unlikely to become a household name. We didn’t find any real constraints on the naming to guide us, so we picked ‘x’ for the center, the unknown, the strange, the xpert only, or even x-rated."
 
