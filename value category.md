@@ -258,7 +258,7 @@ In short:
    - prvalues are latent expressions without identity.
  - after C++17,
    - most prvalues are immaterial representations of result objects, and
-   - xvalues can now also represent materializations of immaterial prvalues.
+   - xvalues are either 1) latent objects with identity, or 2) materializations of immaterial prvalues.
 
 The terms **locatable**, **latent**, and **immaterial** are non-standard terminologies I invented for this write-up. Do not expect other developers to know what they mean. (But please feel free to spread their usage.)
 
