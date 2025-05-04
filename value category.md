@@ -6,11 +6,11 @@ Any expression in C++ can fall into one of a small number of categories called *
 <summary>Note</summary>
 <br>
 
-The names "lvalue" and "rvalue" are historical artifacts. The esoteric language [CPL](http://www.math.bas.bg/~bantchev/place/cpl/features.pdf) (The Combined Programming Language) allowed expressions to be evaluated in "left-hand" mode, where the expression is on the left side of a value assignment, and any expression not evaluated in left-hand mode was evaluated in "right-hand" mode. C inherited this terminology with the concept of the lvalue. According to section A5 from the "The C Programming Language", 2nd Edition from Kernighan and Ritchie,
+Historically, the term lvalue has been used to refer to expressions which can appear on the left hand side of an assignment. The esoteric language [CPL](http://www.math.bas.bg/~bantchev/place/cpl/features.pdf) (The Combined Programming Language) allowed expressions to be evaluated in "left-hand" mode, where the expression is on the left side of a value assignment, and any expression not evaluated in left-hand mode was evaluated in "right-hand" mode. C, which was influenced by CPL, inherited this concept and also called it an "lvalue". According to section A5 from the "The C Programming Language", 2nd Edition from Kernighan and Ritchie,
 
-> An <i>object</i> is a named region of storage; and <i>lvalue</i> is an expression referring to an object. An obvious example of an lvalue expression is an identifier with suitable type and storage class. There are operators that yield lavalues: for example, if `E` is an expression of pointer type, then `*E` is an lvalue expression referring to the object to which `E` points. The name "lvalue" comes from the assignment expression `E1 = E2` in which the left operation `E1` must be an lvalue expression.
+> An <i>object</i> is a named region of storage; and <i>lvalue</i> is an expression referring to an object. An obvious example of an lvalue expression is an identifier with suitable type and storage class. There are operators that yield lvalues: for example, if `E` is an expression of pointer type, then `*E` is an lvalue expression referring to the object to which `E` points. The name "lvalue" comes from the assignment expression `E1 = E2` in which the left operation `E1` must be an lvalue expression.
 
-Since C++ is (almost) a superset of C, it also inherits the concept of an lvalue and also introduces the term "rvalue" for anything that isn't an lvalue, but C++'s additional complexity results in situations where an lvalue cannot appear on the left hand side of an assignment and operator overloading can allow an rvalue to appear on the left hand side of an assignment. To see why I discourage you from thinking of lvalues and rvalues as what can be allowed to appear on either side of an `=` operation, consider the following snippet:
+Since C++ is (almost) a superset of C, it also inherits the concept of an lvalue, and also introduces the term "rvalue" for anything that isn't an lvalue. However, while lvalue historically refers to expressions that can appear on the left side of an assignment, C++'s additional complexity results in situations where an lvalue cannot appear on the left hand side of an assignment and operator overloading can allow an rvalue to appear on the left hand side of an assignment. Consider the following snippet:
 
 ```c++
 #include <iostream>
@@ -25,6 +25,8 @@ int main() {
 ```
 
 (Trivially-copiable classes are implicitly compiled with an operator overload that allows rvalues to appear on the left hand side of a copy assignment.)
+
+In C++ we should not think of lvalues as things that must appear on the left-hand side of an assignment; it only leads to confusion.
 
 <br>
 <br>
@@ -105,15 +107,23 @@ Common rvalues:
     - can be used to initialize rvalue reference (`MyClass&& myRef = <rvalue>;`)
     - function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
 
-The definition of lvalues as locatables has one unfortunate edge case. Names of functions are considered lvalues, yet if you overload a function, passing that function to `&` results in a compilation failure since it is ambiguous which function you should receive the address of. The value categorization of methods is also surprising:
+The definition of lvalues as locatables has one unfortunate edge case. Names of functions are considered lvalues, yet if you overload a function, passing that function to `&` results in a compilation failure since it is ambiguous which function you should receive the address of. Also note that static member functions of objects are are also treated as lvalues in C++ since a static function is functionally equivalent to a regular function defined in a namespace. 
+
+Evidently, the definition of lvalues provided earlier is incomplete. A more complete definition is that lvalues are 1) locatables or 2) names of functions or static method member access.
+
+<details>
+<summary>Note</summary>
+<br>
+<p>It is worth examining the value categorization of methods:</p>
 
  - If we access the name of a method with an qualified-id (`MyClass::method_name`) the result is considered an lvalue.
  - Function member access of static functions (`my_instance.static_method`) the result is also considered an lvalue.
  - But non-static function member access is considered an *rvalue* (`my_instance.method_name`).
 
-The names of functions are, in general, potentially ambiguous because overloading is always possible. Yet non-static member functions are the only function-like expression that is an rvalue. (Perhaps the difference is that non-static function member access are sometimes *resolved at runtime* if the method is declared virtual.) Whatever the reason, we are stuck with the decision from the C++ language designers that functions and static methods are lvalues.
-
-Evidently, the definition of lvalues provided earlier is incomplete. It is better define lvalues as 1) locatables or 2) names of functions or static method member access.
+The names of functions are, in general, potentially ambiguous because overloading is always possible. Yet non-static member functions are the only function-like expression that is an rvalue. Perhaps the difference is that non-static function member access are sometimes *resolved at runtime* if the method is declared virtual. Whatever the reason, we are stuck with the decision from the C++ language designers that only functions and static methods are lvalues.
+<br>
+<br>
+</details>
 
 ## C++11
 
@@ -224,7 +234,7 @@ You might wonder what the term xvalue is supposed to mean. I prefer to think of 
 <details>
 <summary>Note</summary>
 <br>
-<p>The term "xvalue" was understood by the C++ standards committee to be a vague and arbitrary name. To quote Bjarne Stroustrup's [2013 document](https://www.stroustrup.com/terminology.pdf) on the xvalue terminology:</p>
+<p>The term "xvalue" was understood by the C++ standards committee to be a vague and arbitrary name. To quote Bjarne Stroustrup's <a href="https://www.stroustrup.com/terminology.pdf">2013 document</a> on the xvalue terminology:</p>
 
 > "We really don’t have anything that guides us to a good name for those esoteric beasts. They are important to people working with the (draft) standard text, but are unlikely to become a household name. We didn’t find any real constraints on the naming to guide us, so we picked ‘x’ for the center, the unknown, the strange, the xpert only, or even x-rated."
 
