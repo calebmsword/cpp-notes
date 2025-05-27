@@ -252,9 +252,56 @@ The C++11 standard defines rvalues as expressions which are movable. This is a c
 
 ## C++17
 
-C++17 added more wrinkles to the taxonomy. Before C++17, we could have a prvalue which represented a latent object (for example, a function call of a function whose return statement calls a class constructor). After C++17, it no longer represents an object but instead acts as a "free coupon" for that result object. Hence there is no expensive object copy when a prvalue result is returned by a function, we simply "xerox the coupon" for the actual resultant object. The specification demands that, at some point, the object is **materialized** (the coupon is exchanged) into the actual result object, and which point the specification also demands that the prvalue is converted into an xvalue. We will use the term **immaterial** to describe a prvalue which eventually materializes into an xvalue. 
+More changes to value categorization was introduced due to the standardization of **copy elision** in C++17.
 
-Most prvalues are now immaterials that are eventually materialized into an xvalue. This allows the language to remove unnecessary copies of objects. With this new feature, we can no longer bind prvalues to rvalue references. Instead, the prvalue is implicitly materialized into an xvalue and that xvalue is bound to the reference. (Before C++17 it was said that all rvalues are movable. Now, only xvalues are movable.)
+The fact that objects are passed-by-value into functions results in potentially-expensive copy operations whenever functions are used with non-reference/non-pointer arguments. However, some compilers would perform "copy elisions" in some situations to avoid unnecessary copies. A simple example is the **U**nnamed **R**eturn **V**alue **O**ptimization (URVO):
+
+```c++
+class T {};
+
+T get_T() {
+  return T();
+}
+
+int main() {
+  T t = get_T();
+}
+```
+
+In this code example, the pre-C++17 standard demands that a `T` object is copied twice (the return value of `get_T` is copied into the scope of `main` and then the copy assignment induces a second copy). However, with URVO, only one `T` object is initialized and it is stored directly into `t`.
+
+Such copy elisions were commonplace enough in C++ compilers that the standards committee felt it was safest for the language to guarantee copy elision in some places to enforce consistency among language implementations. As such, the C++17 specification guarantees "copy elision" in a small number of situations. cppreference only describes two situations where copies are elided:
+
+ - when a return statement is an initialization of an object of the same type as the function return type
+ - when an object initialization assignment has an rvalue on the right side of the equals sign
+
+(URVO as shown above uses both types of copy elision.) The C++17 specification implements these "guaranteed copy elisions" by changing the meaning of prvalues and xvalues.
+
+After C++17, a prvalue now represents the promise of an eventual object initialization. The initialization of the prvalue is called a **materialization** in which case the prvalue is implicitly converted into an xvalue. With this change, prvalues are now lightweight representations of some eventual result. The initialization of the result is delayed as long as possible in order to elide unnecessary copies. I like use the analogy of a "prvalue as a free coupon". A coupon is representation of some item that can be eventually exchanged. In this analogy, returning a prvalue from a function is simply "xeroxing the coupon" between scopes instead of cloning the expensive item it represents. Eventually, the prvalue is materialized, which in this analogy is represented by exchanging the free coupon for its promised item.
+
+The C++ standard does not provide a convenient terminology for these new prvalues. I use the term **immaterial** to describe prvalues whose results are eventually **materialized** into xvalues. It is also important to understand that everything that was an xvalue in C++11 is still an xvalue, and that C++17 now allows xvalues to categorize an additional type of expression (a materialization of a prvalue).
+
+There is one more edge case. In C++17, rvalues of void type are considered prvalues. void types have no concept of initialization, so we should think of this as a special type of prvalue that has no concept of materialization.
+
+As such, in C++17:
+ - prvalues are now 1) immaterial representations of a result, or 2) latents of type void
+ - xvalues are either 1) latents with identity, or 2) materializations of prvalues
+
+<details>
+
+<summary>Note</summary>
+
+The official C++17 standard defines a prvalue as
+
+ > an expression whose evaluation initializes an object or a bit-field, or computes the value of the operand of an operator, as specified by the context in which it appears.
+
+To reconcile this definition with the previous discussion, realize that prvalues that are not yet materialized are said to "[compute] the value of the operand of an operator, as specified by the context in which it appears." The specification later breaks down each operator in excruciating detail and specifically describes how prvalues are handled for each operator that takes a prvalue for its operand(s)--this is the meaning of the phrase "as specified by the context in which it appears." Meanwhile, prvalues which are materialized are said to "[initialize] an object or a bit-field".
+
+It may also be useful to be aware of the term "result object". The specification describes it as such:
+
+ > The result object of a prvalue is the object initialized by the prvalue; a prvalue that is used to compute the value of an operand of an operator or that has type cv void has no result object.
+
+</details>
 
 ## Summary
 
@@ -269,8 +316,8 @@ In short:
    - xvalues are latent expressions with identity, and
    - prvalues are latent expressions without identity.
  - after C++17,
-   - most prvalues are immaterial representations of result objects, and
-   - xvalues are either 1) latent objects with identity, or 2) materializations of immaterial prvalues.
+   - prvalues are 1) immaterial representations of a result, or 2) latents of type void
+   - xvalues are either 1) latent expressions with identity, or 2) materializations of immaterial prvalues.
 
 The terms **locatable**, **latent**, and **immaterial** are non-standard terminologies I invented for this write-up. Do not expect other developers to know what they mean. (But please feel free to spread their usage.)
 
