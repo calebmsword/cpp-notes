@@ -286,19 +286,28 @@ As such, in C++17:
  - xvalues are either 1) latents with identity, or 2) materializations of prvalues
 
 <details>
-
 <summary>Note</summary>
-
+<br>
 The official C++17 standard defines a prvalue as
 
  > an expression whose evaluation initializes an object or a bit-field, or computes the value of the operand of an operator, as specified by the context in which it appears.
 
-To reconcile this definition with the previous discussion, realize that prvalues that are not yet materialized are said to "[compute] the value of the operand of an operator, as specified by the context in which it appears." The specification later breaks down each operator in excruciating detail and specifically describes how prvalues are handled for each operator that takes a prvalue for its operand(s)--this is the meaning of the phrase "as specified by the context in which it appears." Meanwhile, prvalues which are materialized are said to "[initialize] an object or a bit-field".
+To reconcile this definition with the previous discussion, first understand that prvalues can either be immediately materialized or eventually materialized. In the expression `int& int_ref = 7`, `7` is a prvalue that is immediately materialized (its result must be materialized if we are going to bind it to a reference). Meanwhile, an object initialized in a function return value (say, `return T()` in a function with return type `T`) will be materialized later (that is one of the cases where C++17 guarantees copy elision, so the materialization of the prvalue is delayed). 
 
-It may also be useful to be aware of the term "result object". The specification describes it as such:
+prvalues that are not yet materialized are said to "[compute] the value of the operand of an operator, as specified by the context in which it appears." (The specification later breaks down each operator in excruciating detail and specifically describes how prvalues are handled for each operator that takes a prvalue for its operand(s)--this is the meaning of the phrase "as specified by the context in which it appears.") Meanwhile, prvalues which are immediately materialized are said to "[initialize] an object or a bit-field".
+<br>
+<br>
+</details>
+
+<details>
+<summary>Note</summary>
+<br>
+The official C++17 standard defines the term "result object" which you should understand if you wish to read what the standard has to say regarding prvalues. The specification describes it as such:
+
 
  > The result object of a prvalue is the object initialized by the prvalue; a prvalue that is used to compute the value of an operand of an operator or that has type cv void has no result object.
-
+<br>
+<br>
 </details>
 
 ## Summary
