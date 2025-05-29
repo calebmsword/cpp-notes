@@ -30,6 +30,8 @@ In C++ we should not think of lvalues as things that must appear on the left-han
 <br>
 </details>
 
+Before we talk about value categories it is good to be clear about what the term "object" means in the context of C++. Before object-oriented programming became a popular programming paradigm, the C programming language used the term "object" to refer to named regions of storage. Integers, doubles, strings, structs, and nearly any other piece of data in a C program was an object. Since C++ is (mostly) a superset of C, this terminology persists. Therefore, do not confuse think that the term "object" means "instance of a class." Anything that is not a function in C++ is an object.
+
 It is easiest to define value categories by describing their historical evolution:
 
 ## Before C++11
