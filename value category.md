@@ -180,16 +180,20 @@ The C++ standard uses the term **movable** to describe objects which induce an r
 
 </details>
 
-In C++11, the standards committee wanted to categorize expressions whose evaluation determines an object's **identity**. These expressions are said to "have identity". Expressions have identity if 1) their value is determined by calculating an address in memory, 2) they are an umabigious identifier for some object, or 3) they are lvalues. There are many types of expressions with identity:
+In C++11, the standards committee wanted to categorize expressions whose evaluation determines an object's **identity**. Expressions have identity if 1) their value is determined by calculating an address in memory, 2) they are an umabigious identifier for some object, or 3) they are lvalues. There are many types of expressions with identity:
 
 1) <ins>expressions which calculate specific memory addresses</ins>:
    - **Array subscript operations**. When `a` is an array then `a[n]` is syntactic sugar for `*(a + n)`. We are explicitly evaluating an address in memory and accessing whatever object is there.
 2) <ins>expressions that are umabigious identifiers for an object</ins>:
-   - **Expressions that evaluate to references**. A reference is an alias to an existing object, cannot be reassigned, and if necessary extends the lifetime of the referenced object to that of the reference. We have extremely high assurance that a reference always refers to one specific object and therefore the reference is treated as an identity. There are two types of expressions which evaluate a reference: 1) a function call of a function which returns a reference, or 2) a cast to a reference.
-   - **Non-enumerator, non-function data member access**. Enumerators are evaluated at compile time so is no address associated with an enumerator at runtime, and as such enumerators are not treated as something with identity. The existence of virtual functions means that it can be ambigious what function is being referred to by function member access, so the language does not consider these to carry identity either. In all other cases, member access functions a name to a specific object in memory and as such the standard treats the operation as one that "determines identity".
+   - **Expressions that evaluate to references**. A reference is an alias to an existing object, cannot be reassigned, and if necessary extends the lifetime of the referenced object to that of the reference. We have extremely high assurance that a reference always refers to one specific object and therefore the reference is treated as an identity. There are two types of expressions which evaluate to a reference:
+     - a function call of a function which returns a reference, or
+     - a cast to a reference.
+   - **Non-enumerator, non-function data member access**.
+     - The standard allows for enumerators to be evaluated at compile time, and as such we can guarantee that there is an address associated with an enumerator at runtime. For this reason enumerator member access is not treated as something with identity.
+     - The existence of virtual functions means that it can be ambigious what function is being referred to by function member access, so the language does not consider these to carry identity either.
+     - In all other cases, a member access expression serves as a name to a specific object in memory and as such the standard treats the expression as one that "determines identity".
 3) <ins>lvalues</ins>:
-   - This is because the address of an object is immediately available to the programmer if they use the `&` operator of any lvalue, and we can consider the address of an object as its identity.
-   - Unfortunately, this means that function names and static methods are said to have identity even though function names can be ambiguous (see the previous section).
+   - lvalues are said to carry identity because the `&` operator exposes the address of the value computed by most lvalue expressions, and we can consider the address of an object as its identity. Unfortunately, this has the extremely unfortunate consequence that function names and static member function access are said to have identity, *even though these expressions can be ambiguous identifiers due to overloading*. For this reason I think the term "identity" is a poor choice of terminology, but it is a terminology that has stuck.
 
 What is signficant about this definition of identity is that <ins>it is possible for an rvalue to have identity</ins>. The C++ standards committee recognized the existence of latent expressions with identity when they introduced the *rvalue reference cast* introduced in C++11: an rvalue reference of object type results in latent data (the language specification does not allow this expression to be provided to `&`) but since it is a reference its value *is* the identity of that object. They soon noticed some other rvalues that have identity and felt they should be represented by a third value category. This new value category was integrated into the old value category system by changing the meaning of the word "rvalue":
  - nearly all of what we used to call rvalues are now called **prvalues** ("pure rvalues"),
@@ -251,7 +255,7 @@ The only way to create an rvalue reference cast expression of non-object type is
 <details>
 <summary>Note</summary>
 <br>
-There also exists the umbrella term <b>glvalue</b>, short for "general lvalue", which categories all expressions with identity. xvalues and lvalues are specific types of glvalues. An xvalue is both a glvalue and an rvalue.
+The also exists the umbrella term <b>glvalue</b>, short for "general lvalue". All expressions with identity are said to be glvalues. xvalues and lvalues are specific types of glvalues. An xvalue is both a glvalue and an rvalue.
 
 This term is not useful for everyday C++ programming but it appears frequently in the C++ standard.
 <br>
