@@ -1,3 +1,11 @@
+## Preamble
+
+Some concepts are complex no matter how simply you explain them. C++ value categories are one of those concepts. C++ value catgories rival monads as the most poorly explained concept in software. I used to think it was an extremely difficult topic. After much work I realized the difficulty comes from a pathological desire from the C++ standards choose to choose the most misleading terminology at every turn.
+
+With this document, I will not promise to make C++ value categories simple, but I hope that, by carefully developing an accurate for what they actually are, and by providing improved terminology whenever possible, I can at least make them comprehensible.
+
+## Introduction
+
 Any expression in C++ can fall into one of a small number of categories called **value categories** of which the two most important are **rvalues** and **lvalues**. All expressions are either an rvalue or lvalue. This terminology suggests that there may be some significant correlation between leftness/rightness and lvalue/rvalue. The only meaningful correlation is that lvalues and rvalues are opposites; an expression cannot be both an rvalue and an lvalue at the same time. Trying to find any further correlations only leads to confusion.
 
 <details>
