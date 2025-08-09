@@ -134,9 +134,6 @@ Common lvalues:
    - Data acquired from an explicit address in memory is obviously locatable. 
  - string literals
    - The specification demands that object referenced by a string persists through the lifetime of the program (the terminology they use is "static storage"), so it is safe to make string literals locatable.
- - _Key properties:_
-   - `&` is defined (unless the lvalue is the name of an overloaded function or static method, in which case the location is ambiguous)
-   - can be used as left operand of assignment operators, but only if value is modifiable (variable declared with `const` are not modifiable, for example.)
 
 Common rvalues:
  - any non-string literal (`7`, `3.3f`, etc)
@@ -144,9 +141,6 @@ Common rvalues:
  - logical expressions (`&&`, `||`, etc)
  - comparison expressions (`<`, `>`, `>=`, etc)
  - function calls of any function that does not return an lvalue reference
- -  _Key properties:_
-    - `&` throws
-    - cannot be used in left operand of any assignment
 
 <details>
 <summary>Note</summary>
