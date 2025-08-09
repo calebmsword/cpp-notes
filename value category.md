@@ -45,7 +45,7 @@ We will start by describing what "lvalue" and "rvalue" meant before the updates 
 Two defining characteristics of expressions are **value**, which is the actual value the expression computes, and an **address** which is the physical location in memory where the value is stored. Despite what the name suggests, a "value category" tells us something about the __address__ of any given expression:
 
  - lvalues are expressions whose addresses are made available to the programmer through the `&` operator. In other words, lvalues are **locatable**.
- - The addresses of rvalues are not made available to the programmer through the `&` operator. In other words, rvalues are **latent**.
+ - The addresses of rvalues are not made available to the programmer through the `&` operator. In other words, rvalues are **hidden**.
 
 Sometimes, the value of an expression can be accessed in future lines of code. Other times, the value cannot be guaranteed to be available because the compiler is allowed trash that value immediately after the line of code is completed. (When exactly the compiler chooses to discard temporary data is implementation-dependent, but we avoid problems if we assume that it occurs immediately.) For the programmers safety, the only kinds of expressions that can be provided to the `&` operators those whose values that are guaranteed to persist in future lines of code. Some examples will eludicate: 
 
@@ -65,14 +65,14 @@ if (a + b == 3) {   // <-- "a + b" is an rvalue
   // do stuff
 };
 ```
- - When we write `a + b`, the result of that computation  is whipped up and represented somewhere, but since it is not stored in a variable, it will not be made accessible to the programmer in future lines of code. The compiler is allowed to trash the value at some indeterminate machine instruction sometime after this line of code. While we can get the same *value* by writing `a + b` again in the next line of code, this data will be represented in a new address in memory. Therefore, the address is made latent.
+ - When we write `a + b`, the result of that computation  is whipped up and represented somewhere, but since it is not stored in a variable, it will not be made accessible to the programmer in future lines of code. The compiler is allowed to trash the value at some indeterminate machine instruction sometime after this line of code. While we can get the same *value* by writing `a + b` again in the next line of code, this data will be represented in a new address in memory. Therefore, the address is made hidden.
 
 It is tempting to conclude from the previous exampels that rvalues always represent temporary data. However, consider the next example: 
 
 ```c++
  - int& number_reference = 3; // '3' here is an rvalue.
 ```
- - The C++ standard mandates that integer literals are rvalues. That means `3` in the above code is an rvalue and its address is latent. However, references are aliases to some other value. For the reference in the example above to have a lifetime, the value in the expression `3` must have the same lifetime as that of the reference. Therefore, in this case, the value of the expression `3` is *not* temporary.
+ - The C++ standard mandates that integer literals are rvalues. That means `3` in the above code is an rvalue and its address is hidden. However, references are aliases to some other value. For the reference in the example above to have a lifetime, the value in the expression `3` must have the same lifetime as that of the reference. Therefore, in this case, the value of the expression `3` is *not* temporary.
 
 Some people call rvalues "temporary values", but it is clear from the last example that rvalues are not guaranteed to "immediately vanish" by the next line of code. Using the terminology "temporary" to describe rvalues is objectively incorrect so I am avoiding it entirely in this discussion. Unfortunately, the C++ standard actually uses the concept of "temporary values" so you need be aware that it exists, even though it is bad terminology.
 
@@ -97,7 +97,7 @@ We can account for this with a simple amendment to our original definition:
    2) names of functions, or
    3) static method member access.
  - rvalues are:
-   - *latent* expressions; i.e., any expression that is not a function name or static method member access that cannot be provided to `&`.
+   - *hidden* expressions; i.e., any expression that is not a function name or static method member access that cannot be provided to `&`.
 
 ```c++
 #include <iostream>
@@ -131,6 +131,8 @@ int main() {
     // std::cout << &3 << "\n";
 }
 ```
+
+We might try to come up with a word to characterize all types of lvalues. The best I can come up with is **ferelocatable** (fere is a Latin word that means "usually"). However, I do not think this word will catch on, so we will continue to call lvalues locatable even though function names and static member function accesses are not always locatable.
 
 Here are some examples of the most common lvalues and rvalues. It should be understood that these apply to default, built-in behaviors of C++ operators. While I will not discuss the specifics of operator overloading in this document, it must be understood that *operator overloading can completely override any of the following facts*! (If you encounter some behavior that unexpectedly defies any of the following, it is likely that you either have an operator overload hiding somewhere in your project, or a class you defined was given an implicit operator overload that you did not account for.)
 
@@ -203,10 +205,10 @@ In C++11, the standards committee wanted to categorize expressions whose evaluat
 3) <ins>lvalues</ins>:
    - lvalues are said to carry identity because the `&` operator exposes the address of the value computed by most lvalue expressions, and we can consider the address of an object as its identity. Unfortunately, this has the extremely unfortunate consequence that function names and static member function access are said to have identity, *even though these expressions can be ambiguous identifiers due to overloading*. For this reason the term "identity" is a poor choice of terminology, a common habit of the C++ standards committee.
 
-What is signficant about this definition of identity is that <ins>it is possible for an rvalue to have identity</ins>. The C++ standards committee recognized the existence of latent expressions with identity when they introduced the *rvalue reference cast* introduced in C++11: an rvalue reference of object type results in latent data (the language specification does not allow this expression to be provided to `&`) but since it is a reference its value *is* the identity of that object. They soon noticed some other rvalues that have identity and felt they should be represented by a third value category. This new value category was integrated into the old value category system by changing the meaning of the word "rvalue":
+What is signficant about this definition of identity is that <ins>it is possible for an rvalue to have identity</ins>. The C++ standards committee recognized the existence of hidden expressions with identity when they introduced the *rvalue reference cast* introduced in C++11: an rvalue reference of object type results in hidden data (the language specification does not allow this expression to be provided to `&`) but since it is a reference its value *is* the identity of that object. They soon noticed some other rvalues that have identity and felt they should be represented by a third value category. This new value category was integrated into the old value category system by changing the meaning of the word "rvalue":
  - nearly all of what we used to call rvalues are now called **prvalues** ("pure rvalues"),
  - what we used to call lvalues are still called lvalues,
- - latent objects with identity are now in a new category called **xvalue**,
+ - hidden objects with identity are now in a new category called **xvalue**,
  - and rvalue is now an umbrella term: __xvalues and prvalues are specific types of rvalues__.
 
 There are only a few types of expressions that are xvalues after C++11:
@@ -270,9 +272,9 @@ This term is not useful for everyday C++ programming but it appears frequently i
 <br>
 </details>
 
-The result of the C++11 revamp of value categories is that everything that was an lvalue before was still an lvalue and everything that used to be an rvalue was still an rvalue, but now there two specific and mutually-exclusive types of rvalues. The xvalue is a latent object with identity. prvalues are latent objects without identity.
+The result of the C++11 revamp of value categories is that everything that was an lvalue before was still an lvalue and everything that used to be an rvalue was still an rvalue, but now there two specific and mutually-exclusive types of rvalues. The xvalue is a hidden expression with identity. prvalues are hidden expressions without identity.
 
-You might wonder what the term xvalue is supposed to mean. I prefer to think of xvalue as being short for "cross-value" since an xvalue contains a cross of a feature usually associated with lvalues (identity) and the feature of rvalues (they are latent). The C++ standard provides its own meaning for the term xvalue, but it is terrible and should be ignored. We will discuss it later in this document.
+You might wonder what the term xvalue is supposed to mean. I prefer to think of xvalue as being short for "cross-value" since an xvalue contains a cross of a feature usually associated with lvalues (identity) and the feature of rvalues (they are hidden). The C++ standard provides its own meaning for the term xvalue, but it is terrible and should be ignored. We will discuss it later in this document.
 
 <details>
 <summary>Note</summary>
@@ -288,7 +290,7 @@ You might wonder what the term xvalue is supposed to mean. I prefer to think of 
 <details>
 <summary>Note</summary>
 <br>
-The C++11 standard defines rvalues as expressions which are movable. This is a circular definition; see the overview of move semantics at the beginning of this section. I believe is better to continue to define rvalues as latent expressions even after the C++11 standard.
+The C++11 standard defines rvalues as expressions which are movable. This is a circular definition; see the overview of move semantics at the beginning of this section. I believe is better to continue to define rvalues as hidden expressions even after the C++11 standard.
 <br>
 <br>
 </details>
@@ -327,8 +329,8 @@ The C++ standard does not provide a convenient terminology for these new prvalue
 There is one more edge case. In C++17, rvalues of void type are considered prvalues. void types have no concept of initialization, so we should think of this as a special type of prvalue that has no concept of materialization.
 
 As such, in C++17:
- - prvalues are now 1) immaterial representations of a result, or 2) latents of type void
- - xvalues are either 1) latents with identity, or 2) materializations of prvalues
+ - prvalues are now 1) immaterial representations of a result, or 2) hidden expressions of type void
+ - xvalues are either 1) hidden expressions with identity, or 2) materializations of prvalues
 
 <details>
 <summary>Note</summary>
@@ -358,20 +360,24 @@ The official C++17 standard defines the term "result object" which you should un
 ## Summary
 
 In short:
- - lvalues are either
-   - **locatables**: expressions whose address is guaranteed to be made immediately available through the `&` operator
-   - names of functions or static method member access
- - rvalues are **latent**: their address is not immediately available; they cannot be provided to the `&` operator
- - changes to C++ from the C++11 and C++17 standards do not change these facts, and instead introduce two specific types of rvalues (prvalues and xvalues)
- - after C++11,
-   - all rvalues are either an xvalue or prvalue,
-   - xvalues are latent expressions with identity, and
-   - prvalues are latent expressions without identity.
+ - lvalues are **ferelocatable** expressions, or just **locatable** expressions for short, which are
+   1) expressions whose addresses are be made available through the `&` operator,
+   2) names of functions, which can only be given to `&` if they are not overloaded, or
+   3) static member function access, which can only be given to `&` if they are not overloaded. 
+ - rvalues are **hidden expressions**:
+   - any expression that cannot be given to the `&` operator that is not an overloaded function name or static member function access.
+ - C++11 introduced the concept of **identity**. An expression carries identity if:
+   1) its value is determined by computing a specific memory address (array subscript operations),
+   2) the expression is an unambiguous identifier for an object (casts to object reference type, function calls that return object reference type, and non-static non-enumerator non-function member access)
+   3) it is an lvalue. 
+ - C++11 introduced the meaning of rvalue by introducing the **xvalue** and **prvalue**. All rvalues are either an xvalue or prvalue:
+   - xvalues are hidden expressions with identity, and
+   - prvalues are hidden expressions without identity.
  - after C++17,
-   - prvalues are 1) immaterial representations of a result, or 2) latents of type void
-   - xvalues are either 1) latent expressions with identity, or 2) materializations of immaterial prvalues.
+   - prvalues are 1) immaterial representations of a result, or 2) hidden expressions of type void
+   - xvalues are either 1) hidden expressions with identity, or 2) materializations of immaterial prvalues.
 
-The terms **locatable**, **latent**, and **immaterial** are non-standard terminologies I invented for this write-up. Do not expect other developers to know what they mean. (But please feel free to spread their usage.)
+The terms **(fere)locatable**, **hidden**, and **immaterial** are non-standard terminologies I invented for this write-up. Do not expect other developers to know what they mean. (But please feel free to spread their usage.)
 
 ## An aside on the xvalue terminology
 
