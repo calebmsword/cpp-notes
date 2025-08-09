@@ -4,11 +4,9 @@ Any expression in C++ can fall into one of a small number of categories called *
 <summary>Note</summary>
 <br>
 
-Historically, the term lvalue has been used to refer to expressions which can appear on the left hand side of an assignment. The esoteric language [CPL](https://web.archive.org/web/20250401021940/http://www.math.bas.bg/~bantchev/place/cpl/features.pdf) (The Combined Programming Language) allowed expressions to be evaluated in "left-hand" mode, where the expression is on the left side of a value assignment, and any expression not evaluated in left-hand mode was evaluated in "right-hand" mode. C, which was influenced by CPL, inherited this concept and also called it an "lvalue". According to section A5 from the "The C Programming Language", 2nd Edition from Kernighan and Ritchie,
+Historically, the term lvalue has been used to refer to expressions which can appear on the left hand side of an assignment. The esoteric language [CPL](https://web.archive.org/web/20250401021940/http://www.math.bas.bg/~bantchev/place/cpl/features.pdf) (The Combined Programming Language) allowed expressions to be evaluated in "left-hand" mode which occurs when the expression is on the left side of a value assignment. Any expression not evaluated in left-hand mode was said to be evaluated in "right-hand" mode. C, taking influence from CPL, only allowed certain kinds of expressions to be present on the left side of an equals side and gave these expressions a name: "lvalue".
 
-> An <i>object</i> is a named region of storage; and <i>lvalue</i> is an expression referring to an object. An obvious example of an lvalue expression is an identifier with suitable type and storage class. There are operators that yield lvalues: for example, if `E` is an expression of pointer type, then `*E` is an lvalue expression referring to the object to which `E` points. The name "lvalue" comes from the assignment expression `E1 = E2` in which the left operation `E1` must be an lvalue expression.
-
-Since C++ is (almost) a superset of C, it also inherits the concept of an lvalue, and also introduces the term "rvalue" for anything that isn't an lvalue. However, while lvalue historically refers to expressions that can appear on the left side of an assignment, C++'s additional complexity results in situations where an lvalue cannot appear on the left hand side of an assignment and operator overloading can allow an rvalue to appear on the left hand side of an assignment. Consider the following snippet:
+Since C++ is (almost) a superset of C, it also inherits the concept of an lvalue, and also introduced the term "rvalue" for anything that isn't an lvalue. However, while lvalue historically refers to expressions that can appear on the left side of an assignment, C++'s additional complexity results in situations where an lvalue cannot appear on the left hand side of an assignment and operator overloading can allow an rvalue to appear on the left hand side of an assignment. Consider the following snippet:
 
 ```c++
 #include <iostream>
@@ -22,9 +20,7 @@ int main() {
 }
 ```
 
-(Trivially-copiable classes are implicitly compiled with an operator overload that allows rvalues to appear on the left hand side of a copy assignment.)
-
-In C++ we should not think of lvalues as things that must appear on the left-hand side of an assignment; it only leads to confusion.
+The reason this compiles is because trivially-copiable classes are implicitly compiled with an operator overload that allows rvalues to appear on the left hand side of a copy assignment. The lesson is clear: in C++ we cannot think of lvalues as things that must appear on the left-hand side of an assignment.
 
 <br>
 <br>
@@ -32,16 +28,18 @@ In C++ we should not think of lvalues as things that must appear on the left-han
 
 Before we talk about value categories it is good to be clear about what the term "object" means in the context of C++. Before object-oriented programming became a popular programming paradigm, the C programming language used the term "object" to refer to named regions of storage. Integers, doubles, strings, structs, and nearly any other piece of data in a C program was an object. Since C++ is (mostly) a superset of C, this terminology persists. Therefore, do not confuse think that the term "object" means "instance of a class." Anything that is not a function in C++ is an object.
 
-It is easiest to define value categories by describing their historical evolution:
+It is easiest to define value categories by describing their historical evolution.
 
-## Before C++11
+## Before C++11, Part One: An Incomplete Definition
 
-Two defining characteristics of expressions are **value**, which is the actual value the expression computes, and an **address** which is the physical location in memory where the value is stored. (Expressions in C++ also have **types** but that is not signficant for this discussion.)  Despite what the name suggests, a "value category" tells us something about the __address__ of any given expression:
+We will start by describing what "lvalue" and "rvalue" meant before the updates made to the standard from C++11. We will do this in two stages. In the first stage, we will develop a definition of an rvalue and an incomplete definition of an lvalue. We will complete the definition of lvalue  in the next section.
 
- - lvalues were expressions whose addresses are guaranteed to made available to the programmer through the `&` operator. Hence, we will say that lvalues are **locatable**.
- - The addresses of rvalues are not made available to the programmer through the `&` operator. Hence, we will say that rvalues are **latent**.
+Two defining characteristics of expressions are **value**, which is the actual value the expression computes, and an **address** which is the physical location in memory where the value is stored. Despite what the name suggests, a "value category" tells us something about the __address__ of any given expression:
 
-Most of the time, there is a clear reason the language makes certain expressions locatable and certain expressions latent. Some examples will elucidate:
+ - lvalues are expressions whose addresses are made available to the programmer through the `&` operator. In other words, lvalues are **locatable**.
+ - The addresses of rvalues are not made available to the programmer through the `&` operator. In other words, rvalues are **latent**.
+
+Sometimes, the value of an expression can be accessed in future lines of code. Other times, the value cannot be guaranteed to be available because the compiler is allowed trash that value immediately after the line of code is completed. (When exactly the compiler chooses to discard temporary data is implementation-dependent, but we avoid problems if we assume that it occurs immediately.) For the programmers safety, the only kinds of expressions that can be provided to the `&` operators those whose values that are guaranteed to persist in future lines of code. Some examples will eludicate: 
 
 ```c++
 int x = 3;
@@ -59,26 +57,67 @@ if (a + b == 3) {   // <-- "a + b" is an rvalue
   // do stuff
 };
 ```
- - When we write `a + b`, the result of that computation  is whipped up and represented somewhere, but since it is not stored in a variable, it will not be made accessible to the programmer in future lines of code. The compiler is allowed to trash the value at some indeterminate machine instruction sometime after this line of code. While we can get the same *value* by writing `a + b` again in the next line of code, this data will be represented in a new address in memory. Therefore, it is unsafe to reveal this address to the programmer, and for the programmer's safety, the address is made latent.
+ - When we write `a + b`, the result of that computation  is whipped up and represented somewhere, but since it is not stored in a variable, it will not be made accessible to the programmer in future lines of code. The compiler is allowed to trash the value at some indeterminate machine instruction sometime after this line of code. While we can get the same *value* by writing `a + b` again in the next line of code, this data will be represented in a new address in memory. Therefore, the address is made latent.
+
+It is tempting to conclude from the previous exampels that rvalues always represent temporary data. However, consider the next example: 
 
 ```c++
  - int& number_reference = 3; // '3' here is an rvalue.
 ```
- - Integer literals are, in general, rvalues. While rvalues are latent, there some situations where the address can be saved __if__ they stored into a reference. In this case, the location in memory for `3` will be referenced by `number_reference` and the lifetime of the value for the literal is extended such that it shares the lifetime of the reference. When we find the address of `number_reference` we find the address of the value that was represented by the expression `3`. That is, `3`'s address is made available indirectly through the reference.
+ - The C++ standard mandates that integer literals are rvalues. That means `3` in the above code is an rvalue and its address is latent. However, references are aliases to some other value. For the reference in the example above to have a lifetime, the value in the expression `3` must have the same lifetime as that of the reference. Therefore, in this case, the value of the expression `3` is *not* temporary.
+
+Some people call rvalues "temporary values", but it is clear from the last example that rvalues are not guaranteed to "immediately vanish" by the next line of code. Using the terminology "temporary" to describe rvalues is objectively incorrect so I am avoiding it entirely in this discussion. Unfortunately, the C++ standard actually uses the concept of "temporary values" so you need be aware that it exists, even though it is bad terminology.
 
 <details>
 <summary>Note</summary>
 <br>
-Some people call rvalues "temporary values", and unfortunately this sort of terminology has even permeated the C++ standard. But it is clear from the last example that rvalues are not guaranteed to "immediately vanish" by the next line of code. The terminology "temporary" is objectively incorrect so I am avoiding it entirely in this discussion.
+I have actually been oversimplying things here. I regret to inform that some abuses of the language specification make it possible to create lvalues that refer to data that is no longer in scope. In that sense, a lvalue actually can be said to refer to a "temporary" value. The only situations I am aware of where this can occur happen when functions return lvalue references, and for you own safety I will not show an example. While this makes it tempting to conclude that we should never return lvalues from functions, the only way we can overload operators to return lvalues is to define a function which returns an lvalue reference. This means functions that return lvalue references are a necessary evil, which is extremely poor language design.
+<br>
+<br>
 </details>
 
-<details>
-<summary>Note</summary>
-<br>
-It is a common misconception that lvalues and rvalues indicate the lifetime of data; one might think that lvalues are expressions whose data has persistent lifetime and rvalues are expressions whose data has temporary lifetime. The third example shows why rvalues are not, in general, temporary. I regret to inform that some abuses of the language specification make it possible to create lvalues that refer to data that is no longer in scope. The lesson is clear: in general, do not associate value category with lifetime.
-<br>
-<br>
-</details>
+## Before C++11, Part Two: A Complete Definition of "lvalue"
+
+In part one, we essentially defined lvalues as "expressions which can be provided to the `&` operator". However, C++ standard demands that functions names are considered lvalues, which is problematic for our definition because some functions cannot be provided to the `&` operator! If you overload a function, passing that function to `&` results in a compilation failure because that name actually refers to more than one subroutine--at compile time, which subroutine occurs is determined by the arguments provided to the function, something that is not present when you give only the function name to `&`.
+
+Furthermore, static member functions are are also treated as lvalues in C++. A static method is functionally equivalent to a regular function defined in a namespace, so this is a reasonable decision from the standard. 
+
+We will amend this definition by simply appending to it. Therefore, 
+
+ - lvalues are either:
+   1) *locatable* expressions; i.e. expressions which may be provided to the `&` operator,
+   2) names of functions,
+   3) static method member access.
+
+```c++
+#include <iostream>
+
+class T {
+public:
+  static int get_three() { return 3; }
+  static int get_number() { return 4; }
+  static int get_number(int num) { return num; }
+};
+
+int get_number() { return 4; }
+int get_number(int num) { return num; }
+
+int main() {
+    T t; 
+    
+    // `t` is an lvalue
+    std::cout << &t << "\n";
+    
+    // `t.get_three` is an lvalue since it is static member acess
+    std::cout << &t.get_three << "\n";
+    
+    // `get_number` is an lvalue but overloaded functions cannot be given to `&` operator
+    // std::cout << &get_number << "\n"; 
+    
+    // `t.get_number` is an lvalue but overloaded static methods cannot be given to `&` operator
+    // std::cout << &t.get_number << "\n";
+}
+```
 
 Here are some examples of the most common lvalues and rvalues: (it should be understood that these apply to default, built-in behaviors of C++ operators. Operator overloading can completely override any of the following facts.)
 
@@ -106,10 +145,6 @@ Common rvalues:
     - can be used to initialize const lvalue reference (`const MyClass& myRef = <rvalue>;`)
     - can be used to initialize rvalue reference (`MyClass&& myRef = <rvalue>;`)
     - function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
-
-The definition of lvalues as locatables has one unfortunate edge case. Names of functions are considered lvalues, yet if you overload a function, passing that function to `&` results in a compilation failure since it is ambiguous which function you should receive the address of. Also note that static member functions of objects are are also treated as lvalues in C++ since a static function is functionally equivalent to a regular function defined in a namespace. 
-
-Evidently, the definition of lvalues provided earlier is incomplete. A more complete definition is that lvalues are 1) locatables or 2) names of functions or static method member access.
 
 <details>
 <summary>Note</summary>
