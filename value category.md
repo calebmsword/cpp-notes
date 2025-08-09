@@ -79,7 +79,7 @@ Some people call rvalues "temporary values", but it is clear from the last examp
 <details>
 <summary>Note</summary>
 <br>
-I have actually been oversimplying things here. I regret to inform that some abuses of the language specification make it possible to create lvalues that refer to data that is no longer in scope. In that sense, a lvalue actually can be said to refer to a "temporary" value. The only situations I am aware of where this can occur happen when functions return lvalue references, and for you own safety I will not show an example. While this makes it tempting to conclude that we should never return lvalues from functions, the only way we can overload operators to return lvalues is to define a function which returns an lvalue reference. This means functions that return lvalue references are a necessary evil, which is extremely poor language design.
+I have actually been oversimplying things here. I regret to inform that some abuses of the language specification make it possible to create lvalues that refer to data that is no longer in scope. In that sense, a lvalue actually can be said to refer to a "temporary" value. The only situations I am aware of where this can occur happen when functions return lvalue references, and for you own safety I will not show an example. While this makes it tempting to conclude that we should never return lvalues from functions, the only way we can overload operators and still have them compute lvalues is to define a function which returns an lvalue reference. This means functions that return lvalue references are a necessary evil, which is extremely poor language design.
 <br>
 <br>
 </details>
