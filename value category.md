@@ -377,7 +377,7 @@ In short:
    - prvalues are 1) immaterial representations of a result, or 2) hidden expressions of type void
    - xvalues are either 1) hidden expressions with identity, or 2) materializations of immaterial prvalues.
 
-The terms **(fere)locatable**, **hidden**, and **immaterial** are non-standard terminologies I invented for this write-up. Do not expect other developers to know what they mean. (But please feel free to spread their usage.)
+The terms **(fere)locatable**, **hidden**, and **immaterial** are non-standard terminologies I invented for this write-up. Do not expect other developers to know what they mean, but please feel free to spread their usage.
 
 ## An aside on the xvalue terminology
 
