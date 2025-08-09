@@ -209,8 +209,6 @@ What is signficant about this definition of identity is that <ins>it is possible
  - latent objects with identity are now in a new category called **xvalue**,
  - and rvalue is now an umbrella term: __xvalues and prvalues are specific types of rvalues__.
 
-locatables, latents, statics, and crosses.
-
 There are only a few types of expressions that are xvalues after C++11:
 
   1) <ins>rvalue reference casts of objects</ins>.
