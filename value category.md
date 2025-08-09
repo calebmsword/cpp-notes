@@ -272,7 +272,7 @@ This term is not useful for everyday C++ programming but it appears frequently i
 
 The result of the C++11 revamp of value categories is that everything that was an lvalue before was still an lvalue and everything that used to be an rvalue was still an rvalue, but now there two specific and mutually-exclusive types of rvalues. The xvalue is a latent object with identity. prvalues are latent objects without identity.
 
-You might wonder what the term xvalue is supposed to mean. I prefer to think of xvalue as being short for "cross value" since an xvalue contains a cross of a feature usually associated with lvalues (identity) and the feature of rvalues (they are latent).
+You might wonder what the term xvalue is supposed to mean. I prefer to think of xvalue as being short for "cross-value" since an xvalue contains a cross of a feature usually associated with lvalues (identity) and the feature of rvalues (they are latent). The C++ standard provides its own meaning for the term xvalue, but it is terrible and should be ignored. We will discuss it later in this document.
 
 <details>
 <summary>Note</summary>
