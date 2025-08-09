@@ -201,13 +201,15 @@ In C++11, the standards committee wanted to categorize expressions whose evaluat
      - The existence of virtual functions means that it can be ambigious what function is being referred to by function member access, so the language does not consider these to carry identity either.
      - In all other cases, a member access expression serves as a name to a specific object in memory and as such the standard treats the expression as one that "determines identity".
 3) <ins>lvalues</ins>:
-   - lvalues are said to carry identity because the `&` operator exposes the address of the value computed by most lvalue expressions, and we can consider the address of an object as its identity. Unfortunately, this has the extremely unfortunate consequence that function names and static member function access are said to have identity, *even though these expressions can be ambiguous identifiers due to overloading*. For this reason I think the term "identity" is a poor choice of terminology, but it is a terminology that has stuck.
+   - lvalues are said to carry identity because the `&` operator exposes the address of the value computed by most lvalue expressions, and we can consider the address of an object as its identity. Unfortunately, this has the extremely unfortunate consequence that function names and static member function access are said to have identity, *even though these expressions can be ambiguous identifiers due to overloading*. For this reason the term "identity" is a poor choice of terminology, a common habit of the C++ standards committee.
 
 What is signficant about this definition of identity is that <ins>it is possible for an rvalue to have identity</ins>. The C++ standards committee recognized the existence of latent expressions with identity when they introduced the *rvalue reference cast* introduced in C++11: an rvalue reference of object type results in latent data (the language specification does not allow this expression to be provided to `&`) but since it is a reference its value *is* the identity of that object. They soon noticed some other rvalues that have identity and felt they should be represented by a third value category. This new value category was integrated into the old value category system by changing the meaning of the word "rvalue":
  - nearly all of what we used to call rvalues are now called **prvalues** ("pure rvalues"),
  - what we used to call lvalues are still called lvalues,
  - latent objects with identity are now in a new category called **xvalue**,
  - and rvalue is now an umbrella term: __xvalues and prvalues are specific types of rvalues__.
+
+locatables, latents, statics, and crosses.
 
 There are only a few types of expressions that are xvalues after C++11:
 
