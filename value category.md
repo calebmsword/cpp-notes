@@ -360,7 +360,7 @@ The official C++17 standard defines the term "result object" which you should un
 ## Summary
 
 In short:
- - lvalues are **ferelocatable** expressions, or just **locatable** expressions for short, which are
+ - lvalues are **ferelocatable expressions**, or just **locatable expressions** for short, which are
    1) expressions whose addresses are be made available through the `&` operator,
    2) names of functions, which can only be given to `&` if they are not overloaded, or
    3) static member function access, which can only be given to `&` if they are not overloaded. 
@@ -369,8 +369,8 @@ In short:
  - C++11 introduced the concept of **identity**. An expression carries identity if:
    1) its value is determined by computing a specific memory address (array subscript operations),
    2) the expression is an unambiguous identifier for an object (casts to object reference type, function calls that return object reference type, and non-static non-enumerator non-function member access)
-   3) it is an lvalue. 
- - C++11 introduced the meaning of rvalue by introducing the **xvalue** and **prvalue**. All rvalues are either an xvalue or prvalue:
+   3) it is an lvalue.
+ - C++11 expanded on the concept of an rvalue by introducing the **xvalue** and **prvalue** which are specific types of rvalues. All rvalues are either an xvalue or prvalue:
    - xvalues are hidden expressions with identity, and
    - prvalues are hidden expressions without identity.
  - after C++17,
