@@ -1,6 +1,6 @@
 ## Preamble
 
-Some concepts are complex no matter how simply you explain them. C++ value categories are one of those concepts. C++ value catgories rival monads as the most poorly explained concept in software. I used to think it was an extremely difficult topic. After much work I realized the difficulty comes from a pathological desire from the C++ standards choose to choose the most misleading terminology at every turn.
+C++ value catgories rival monads for the most poorly explained concept in software. I used to think it was an extremely difficult topic. After much work I realized the difficulty comes from a pathological desire from the C++ standards choose to choose the most misleading terminology at every turn.
 
 With this document, I will not promise to make C++ value categories simple, but I hope that, by carefully developing an accurate for what they actually are, and by providing improved terminology whenever possible, I can at least make them comprehensible.
 
