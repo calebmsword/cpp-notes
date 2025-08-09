@@ -32,7 +32,7 @@ It is easiest to define value categories by describing their historical evolutio
 
 ## Before C++11, Part One: An Incomplete Definition
 
-We will start by describing what "lvalue" and "rvalue" meant before the updates made to the standard from C++11. We will do this in two stages. In the first stage, we will develop a definition of an rvalue and an incomplete definition of an lvalue. We will complete the definition of lvalue  in the next section.
+We will start by describing what "lvalue" and "rvalue" meant before the updates made to the standard from C++11. We will do this in two stages. In the first stage, we will develop a definition of an rvalue and lvalue that does not account for functions. We will account for functions in the next section.
 
 Two defining characteristics of expressions are **value**, which is the actual value the expression computes, and an **address** which is the physical location in memory where the value is stored. Despite what the name suggests, a "value category" tells us something about the __address__ of any given expression:
 
@@ -76,18 +76,20 @@ I have actually been oversimplying things here. I regret to inform that some abu
 <br>
 </details>
 
-## Before C++11, Part Two: A Complete Definition of "lvalue"
+## Before C++11, Part Two: A Complete Definition of "lvalue" and "rvalue"
 
 In part one, we essentially defined lvalues as "expressions which can be provided to the `&` operator". However, C++ standard demands that functions names are considered lvalues, which is problematic for our definition because some functions cannot be provided to the `&` operator! If you overload a function, passing that function to `&` results in a compilation failure because that name actually refers to more than one subroutine--at compile time, which subroutine occurs is determined by the arguments provided to the function, something that is not present when you give only the function name to `&`.
 
-Furthermore, static member functions are are also treated as lvalues in C++. A static method is functionally equivalent to a regular function defined in a namespace, so this is a reasonable decision from the standard. 
+Furthermore, static member functions are are also treated as lvalues in C++. A static method is functionally equivalent to a regular function defined in a namespace so this is a reasonable decision from the standard. 
 
-We will amend this definition by simply appending to it. Therefore, 
+We can account for this with a simple amendment to our original definition: 
 
  - lvalues are either:
    1) *locatable* expressions; i.e. expressions which may be provided to the `&` operator,
-   2) names of functions,
+   2) names of functions, or
    3) static method member access.
+ - rvalues are:
+   - *latent* expressions; i.e., any expression that is not a function name or static method member access that cannot be provided to `&`.
 
 ```c++
 #include <iostream>
@@ -111,15 +113,18 @@ int main() {
     // `t.get_three` is an lvalue since it is static member acess
     std::cout << &t.get_three << "\n";
     
-    // `get_number` is an lvalue but overloaded functions cannot be given to `&` operator
+    // throws--`get_number` is an lvalue but overloaded functions cannot be given to `&` operator
     // std::cout << &get_number << "\n"; 
     
-    // `t.get_number` is an lvalue but overloaded static methods cannot be given to `&` operator
+    // throws--`t.get_number` is an lvalue but overloaded static methods cannot be given to `&` operator
     // std::cout << &t.get_number << "\n";
+    
+    // throws--`3` is an rvalue
+    // std::cout << &3 << "\n";
 }
 ```
 
-Here are some examples of the most common lvalues and rvalues: (it should be understood that these apply to default, built-in behaviors of C++ operators. Operator overloading can completely override any of the following facts.)
+Here are some examples of the most common lvalues and rvalues. It should be understood that these apply to default, built-in behaviors of C++ operators. While I will not discuss the specifics of operator overloading in this document, it must be understood that *operator overloading can completely override any of the following facts*! (If you encounter some behavior that unexpectedly defies any of the following, it is likely that you either have an operator overload hiding somewhere in your project, or a class you defined was given an implicit operator overload that you did not account for.)
 
 Common lvalues:
  - names of variables (or functions, templates, data members)
@@ -130,8 +135,8 @@ Common lvalues:
  - string literals
    - The specification demands that object referenced by a string persists through the lifetime of the program (the terminology they use is "static storage"), so it is safe to make string literals locatable.
  - _Key properties:_
-   - `&` is defined (unless the lvalue is the name of an overloaded function, in which case the location is ambiguous)
-   - can be used as left operand of assignment operators, but only if value is modifiable
+   - `&` is defined (unless the lvalue is the name of an overloaded function or static method, in which case the location is ambiguous)
+   - can be used as left operand of assignment operators, but only if value is modifiable (variable declared with `const` are not modifiable, for example.)
 
 Common rvalues:
  - any non-string literal (`7`, `3.3f`, etc)
@@ -142,9 +147,6 @@ Common rvalues:
  -  _Key properties:_
     - `&` throws
     - cannot be used in left operand of any assignment
-    - can be used to initialize const lvalue reference (`const MyClass& myRef = <rvalue>;`)
-    - can be used to initialize rvalue reference (`MyClass&& myRef = <rvalue>;`)
-    - function overload defined for rvalue reference parameter is used, if defined, if passed as argument to that function
 
 <details>
 <summary>Note</summary>
